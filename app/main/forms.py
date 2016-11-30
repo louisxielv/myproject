@@ -14,7 +14,6 @@ class NameForm(FlaskForm):
 
 class EditProfileForm(FlaskForm):
     name = StringField('Real name', validators=[Length(0, 64)])
-    location = StringField('Location', validators=[Length(0, 64)])
     about_me = TextAreaField('About me')
     submit = SubmitField('Submit')
 
@@ -28,7 +27,6 @@ class EditProfileAdminForm(FlaskForm):
     confirmed = BooleanField('Confirmed')
     role = SelectField('Role', coerce=int)
     name = StringField('Real name', validators=[Length(0, 64)])
-    location = StringField('Location', validators=[Length(0, 64)])
     about_me = TextAreaField('About me')
     submit = SubmitField('Submit')
 
@@ -47,8 +45,8 @@ class EditProfileAdminForm(FlaskForm):
             raise ValidationError('Username already in use.')
 
 
-class PostForm(FlaskForm):
-    body = PageDownField("What's on your mind?", validators=[DataRequired()])
+class RecipeForm(FlaskForm):
+    body = PageDownField("How to make your favourite food?", validators=[DataRequired()])
     submit = SubmitField('Submit')
 
 

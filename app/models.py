@@ -2,13 +2,12 @@ import hashlib
 from datetime import datetime
 
 import bleach
-from flask import current_app, request, url_for
+from flask import current_app, request
 from flask_login import UserMixin, AnonymousUserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from markdown import markdown
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from app.exceptions import ValidationError
 from . import db, login_manager
 
 
@@ -69,12 +68,11 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128))
     confirmed = db.Column(db.Boolean, default=False)
     name = db.Column(db.String(64))
-    location = db.Column(db.String(64))
     about_me = db.Column(db.Text())
     member_since = db.Column(db.DateTime(), default=datetime.utcnow)
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
-    avatar_hash = db.Column(db.String(32))
-    posts = db.relationship('Post', backref='author', lazy='dynamic')
+    avatar_hash = db.Column(db.String(32))  # https://en.gravatar.com/
+    recipes = db.relationship('Recipe', backref='author', lazy='dynamic')
     followed = db.relationship('Follow',
                                foreign_keys=[Follow.follower_id],
                                backref=db.backref('follower', lazy='joined'),
@@ -100,7 +98,6 @@ class User(UserMixin, db.Model):
                      password=forgery_py.lorem_ipsum.word(),
                      confirmed=True,
                      name=forgery_py.name.full_name(),
-                     location=forgery_py.address.city(),
                      about_me=forgery_py.lorem_ipsum.sentence(),
                      member_since=forgery_py.date.date(True))
             db.session.add(u)
@@ -214,6 +211,7 @@ class User(UserMixin, db.Model):
         return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(
             url=url, hash=hash, size=size, default=default, rating=rating)
 
+    # follow part
     def follow(self, user):
         if not self.is_following(user):
             f = Follow(follower=self, followed=user)
@@ -233,22 +231,9 @@ class User(UserMixin, db.Model):
             follower_id=user.id).first() is not None
 
     @property
-    def followed_posts(self):
-        return Post.query.join(Follow, Follow.followed_id == Post.author_id) \
-            .filter(Follow.follower_id == self.id)
-
-    def to_json(self):
-        json_user = {
-            'url': url_for('api.get_user', id=self.id, _external=True),
-            'username': self.username,
-            'member_since': self.member_since,
-            'last_seen': self.last_seen,
-            'posts': url_for('api.get_user_posts', id=self.id, _external=True),
-            'followed_posts': url_for('api.get_user_followed_posts',
-                                      id=self.id, _external=True),
-            'post_count': self.posts.count()
-        }
-        return json_user
+    def followed_recipes(self):
+        return Recipe.query.join(Follow,
+                                 Follow.followed_id == Recipe.author_id).filter(Follow.follower_id == self.id)
 
     def generate_auth_token(self, expiration):
         s = Serializer(current_app.config['SECRET_KEY'],
@@ -265,7 +250,13 @@ class User(UserMixin, db.Model):
         return User.query.get(data['id'])
 
     def __repr__(self):
-        return '<User %r>' % self.username
+        return '<User {!r}, email: {!r}, username: {!r}>, role: <!r>, confirmed: <!r>, name: <!r>' \
+            .format(self.username,
+                    self.email,
+                    self.username,
+                    self.role_id,
+                    self.confirmed,
+                    self.name)
 
 
 class AnonymousUser(AnonymousUserMixin):
@@ -284,19 +275,19 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-class Groups(db.Model):
-    __tablename__ = 'groups'
-    pass
+# class Groups(db.Model):
+#     __tablename__ = 'groups'
+#     pass
 
 
-class Post(db.Model):
-    __tablename__ = 'posts'
+class Recipe(db.Model):
+    __tablename__ = 'recipes'
     id = db.Column(db.Integer, primary_key=True)
     body = db.Column(db.Text)
     body_html = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    comments = db.relationship('Comment', backref='post', lazy='dynamic')
+    comments = db.relationship('Comment', backref='recipe', lazy='dynamic')
 
     @staticmethod
     def generate_fake(count=100):
@@ -307,9 +298,9 @@ class Post(db.Model):
         user_count = User.query.count()
         for i in range(count):
             u = User.query.offset(randint(0, user_count - 1)).first()
-            p = Post(body=forgery_py.lorem_ipsum.sentences(randint(1, 5)),
-                     timestamp=forgery_py.date.date(True),
-                     author=u)
+            p = Recipe(body=forgery_py.lorem_ipsum.sentences(randint(1, 10)),
+                       timestamp=forgery_py.date.date(True),
+                       author=u)
             db.session.add(p)
             db.session.commit()
 
@@ -322,29 +313,8 @@ class Post(db.Model):
             markdown(value, output_format='html'),
             tags=allowed_tags, strip=True))
 
-    def to_json(self):
-        json_post = {
-            'url': url_for('api.get_post', id=self.id, _external=True),
-            'body': self.body,
-            'body_html': self.body_html,
-            'timestamp': self.timestamp,
-            'author': url_for('api.get_user', id=self.author_id,
-                              _external=True),
-            'comments': url_for('api.get_post_comments', id=self.id,
-                                _external=True),
-            'comment_count': self.comments.count()
-        }
-        return json_post
 
-    @staticmethod
-    def from_json(json_post):
-        body = json_post.get('body')
-        if body is None or body == '':
-            raise ValidationError('post does not have a body')
-        return Post(body=body)
-
-
-db.event.listen(Post.body, 'set', Post.on_changed_body)
+db.event.listen(Recipe.body, 'set', Recipe.on_changed_body)
 
 
 class Comment(db.Model):
@@ -355,7 +325,7 @@ class Comment(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     disabled = db.Column(db.Boolean)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
+    recipe_id = db.Column(db.Integer, db.ForeignKey('recipes.id'))
 
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
@@ -364,25 +334,6 @@ class Comment(db.Model):
         target.body_html = bleach.linkify(bleach.clean(
             markdown(value, output_format='html'),
             tags=allowed_tags, strip=True))
-
-    def to_json(self):
-        json_comment = {
-            'url': url_for('api.get_comment', id=self.id, _external=True),
-            'post': url_for('api.get_post', id=self.post_id, _external=True),
-            'body': self.body,
-            'body_html': self.body_html,
-            'timestamp': self.timestamp,
-            'author': url_for('api.get_user', id=self.author_id,
-                              _external=True),
-        }
-        return json_comment
-
-    @staticmethod
-    def from_json(json_comment):
-        body = json_comment.get('body')
-        if body is None or body == '':
-            raise ValidationError('comment does not have a body')
-        return Comment(body=body)
 
 
 db.event.listen(Comment.body, 'set', Comment.on_changed_body)

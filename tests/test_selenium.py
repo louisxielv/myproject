@@ -4,7 +4,7 @@ import time
 import unittest
 from selenium import webdriver
 from app import create_app, db
-from app.models import Role, User, Post
+from app.models import Role, User, Recipe
 
 
 class SeleniumTestCase(unittest.TestCase):
@@ -34,7 +34,7 @@ class SeleniumTestCase(unittest.TestCase):
             db.create_all()
             Role.insert_roles()
             User.generate_fake(10)
-            Post.generate_fake(10)
+            Recipe.generate_fake(10)
 
             # add an administrator user
             admin_role = Role.query.filter_by(permissions=0xff).first()
