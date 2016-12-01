@@ -49,7 +49,7 @@ class Role(db.Model):
         db.session.commit()
 
     def __repr__(self):
-        return '<Role %r>' % self.name
+        return '<Role {!r}, Name: {!r}>'.format(self.id, self.name)
 
 
 class Follow(db.Model):
@@ -57,6 +57,13 @@ class Follow(db.Model):
     follower_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
     followed_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+# many to many relationship
+group_member = db.Table('group_member',
+                        db.Column('user.id', db.INTEGER, db.ForeignKey('users.id')),
+                        db.Column('group_id', db.INTEGER, db.ForeignKey('groups.id')),
+                        db.Column('member_since', db.DATETIME, default=datetime.utcnow))
 
 
 class User(UserMixin, db.Model):
@@ -83,7 +90,11 @@ class User(UserMixin, db.Model):
                                 backref=db.backref('followed', lazy='joined'),
                                 lazy='dynamic',
                                 cascade='all, delete-orphan')
-    comments = db.relationship('Comment', backref='author', lazy='dynamic')
+    reviews = db.relationship('Review', backref='author', lazy='dynamic')
+    groups = db.relationship('Group',   # table name
+                             secondary='group_member',  # association table
+                             backref=db.backref('members', lazy='dynamic'),  # User.groups and Group.members
+                             lazy='dynamic')
 
     @staticmethod
     def generate_fake(count=100):
@@ -235,6 +246,20 @@ class User(UserMixin, db.Model):
         return Recipe.query.join(Follow,
                                  Follow.followed_id == Recipe.author_id).filter(Follow.follower_id == self.id)
 
+    # membership part
+    def member(self, group):
+        if not self.is_member(group):
+            self.groups.append(group)
+            db.session.add(self)
+
+    def unmember(self, group):
+        if self.is_member(group):
+            self.groups.remove(group)
+            db.session.add(self)
+
+    def is_member(self, group):
+        return group in self.groups
+
     def generate_auth_token(self, expiration):
         s = Serializer(current_app.config['SECRET_KEY'],
                        expires_in=expiration)
@@ -250,13 +275,15 @@ class User(UserMixin, db.Model):
         return User.query.get(data['id'])
 
     def __repr__(self):
-        return '<User {!r}, email: {!r}, username: {!r}>, role: <!r>, confirmed: <!r>, name: <!r>' \
-            .format(self.username,
+        return '<id: {:s}, User {:s}, email: {:s}, username: {:s}, role: <:s>, confirmed: <:s>>\n' \
+            .format(self.id,
+                    self.username,
                     self.email,
                     self.username,
                     self.role_id,
                     self.confirmed,
-                    self.name)
+                    self.name,
+                    self.groups)
 
 
 class AnonymousUser(AnonymousUserMixin):
@@ -275,9 +302,23 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-# class Groups(db.Model):
-#     __tablename__ = 'groups'
-#     pass
+class Group(db.Model):
+    __tablename__ = 'groups'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100))
+    about_group = db.Column(db.Text)
+    grouped_since = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+
+    def __repr__(self):
+        return '<id {!r}, title: {!r}, about_group: {!r}>, member_since: <!r>' \
+            .format(self.id,
+                    self.title,
+                    self.about_group,
+                    self.member_since)
+
+    # membership part
+    def is_member(self, user):
+        return user in self.members
 
 
 class Recipe(db.Model):
@@ -287,7 +328,7 @@ class Recipe(db.Model):
     body_html = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    comments = db.relationship('Comment', backref='recipe', lazy='dynamic')
+    reviews = db.relationship('Review', backref='recipe', lazy='dynamic')
 
     @staticmethod
     def generate_fake(count=100):
@@ -313,13 +354,13 @@ class Recipe(db.Model):
             markdown(value, output_format='html'),
             tags=allowed_tags, strip=True))
 
-
 db.event.listen(Recipe.body, 'set', Recipe.on_changed_body)
 
 
-class Comment(db.Model):
-    __tablename__ = 'comments'
+class Review(db.Model):
+    __tablename__ = 'reviews'
     id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.Text)
     body = db.Column(db.Text)
     body_html = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
@@ -336,4 +377,4 @@ class Comment(db.Model):
             tags=allowed_tags, strip=True))
 
 
-db.event.listen(Comment.body, 'set', Comment.on_changed_body)
+db.event.listen(Review.body, 'set', Review.on_changed_body)

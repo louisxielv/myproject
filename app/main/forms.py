@@ -50,6 +50,10 @@ class RecipeForm(FlaskForm):
     submit = SubmitField('Submit')
 
 
-class CommentForm(FlaskForm):
-    body = StringField('Enter your comment', validators=[DataRequired()])
+class SearchForm(FlaskForm):
+    search = StringField('Search', validators=[DataRequired()])
+
+
+class ReviewForm(FlaskForm):
+    body = StringField('Enter your review', validators=[DataRequired()])
     submit = SubmitField('Submit')

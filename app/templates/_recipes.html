@@ -7,8 +7,12 @@
             </a>
         </div>
         <div class="recipe-content">
-            <div class="recipe-date">{{ moment(recipe.timestamp).fromNow() }}</div>
-            <div class="recipe-author"><a href="{{ url_for('.user', username=recipe.author.username) }}">{{ recipe.author.username }}</a></div>
+            <div class="recipe-date">
+                {{ moment(recipe.timestamp).fromNow() }}
+            </div>
+            <div class="recipe-author">
+                <a href="{{ url_for('.user', username=recipe.author.username) }}">{{ recipe.author.username }}</a>
+            </div>
             <div class="recipe-body">
                 {% if recipe.body_html %}
                     {{ recipe.body_html | safe }}
@@ -29,8 +33,8 @@
                 <a href="{{ url_for('.recipe', id=recipe.id) }}">
                     <span class="label label-default">Permalink</span>
                 </a>
-                <a href="{{ url_for('.recipe', id=recipe.id) }}#comments">
-                    <span class="label label-primary">{{ recipe.comments.count() }} Comments</span>
+                <a href="{{ url_for('.recipe', id=recipe.id) }}#reviews">
+                    <span class="label label-primary">{{ recipe.reviews.count() }} Reviews</span>
                 </a>
             </div>
         </div>

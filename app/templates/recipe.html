@@ -6,16 +6,17 @@
 
 {% block page_content %}
     {% include '_recipes.html' %}
-    <h4 id="comments">Comments</h4>
-    {% if current_user.can(Permission.COMMENT) %}
-        <div class="comment-form">
-            {{ wtf.quick_form(form) }}
-        </div>
-    {% endif %}
-    {% include '_comments.html' %}
+    <h4 id="reviews">Comments</h4>
+    {% include '_reviews.html' %}
     {% if pagination %}
         <div class="pagination">
-            {{ macros.pagination_widget(pagination, '.recipe', fragment='#comments', id=recipes[0].id) }}
+            {{ macros.pagination_widget(pagination, '.recipe', fragment='#reviews', id=recipes[0].id) }}
+        </div>
+    {% endif %}
+
+    {% if current_user.can(Permission.COMMENT) %}
+        <div class="review-form">
+            {{ wtf.quick_form(form) }}
         </div>
     {% endif %}
 {% endblock %}

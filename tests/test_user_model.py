@@ -2,7 +2,7 @@ import unittest
 import time
 from datetime import datetime
 from app import create_app, db
-from app.models import User, AnonymousUser, Role, Permission, Follow
+from app.models import User, AnonymousUser, Role, Permission, Follow, Group
 
 
 class UserModelTestCase(unittest.TestCase):
@@ -187,3 +187,42 @@ class UserModelTestCase(unittest.TestCase):
         db.session.delete(u2)
         db.session.commit()
         self.assertTrue(Follow.query.count() == 1)
+
+    def test_groups(self):
+        timestamp_before1 = datetime.utcnow()
+        u1 = User(email='john@example.com', password='cat')
+        u2 = User(email='susan@example.org', password='dog')
+        g1 = Group(title='whatfood')
+        g2 = Group(title='hayguys')
+        db.session.add(u1)
+        db.session.add(u2)
+        db.session.add(g1)
+        db.session.add(g2)
+        db.session.commit()
+        self.assertFalse(u1.is_member(g1))
+        self.assertFalse(u1.is_member(g2))
+        self.assertFalse(g1.is_member(u1))
+        timestamp_before = datetime.utcnow()
+        u1.member(g1)
+        u1.member(g2)
+        u2.member(g1)
+        db.session.add(u1)
+        db.session.add(u2)
+        db.session.commit()
+        timestamp_after = datetime.utcnow()
+        self.assertTrue(u1.is_member(g1))
+        self.assertTrue(u1.is_member(g2))
+        self.assertTrue(g1.is_member(u1))
+        self.assertTrue(u1.groups.count() == 2)
+        self.assertTrue(g1.members.count() == 2)
+        g = u1.groups.all()[-1]
+        self.assertTrue(g == g2)
+        self.assertTrue(timestamp_before1 <= g.member_since <= timestamp_after)
+        u1.unmember(g2)
+        db.session.add(u1)
+        db.session.commit()
+        self.assertTrue(u1.groups.count() == 1)
+        self.assertTrue(g2.members.count() == 0)
+        g = u1.groups.all()[-1]
+        self.assertTrue(g == g1)
+
