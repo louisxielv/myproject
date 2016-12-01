@@ -60,10 +60,17 @@ class Follow(db.Model):
 
 
 # many to many relationship
-group_member = db.Table('group_member',
-                        db.Column('user.id', db.INTEGER, db.ForeignKey('users.id')),
-                        db.Column('group_id', db.INTEGER, db.ForeignKey('groups.id')),
-                        db.Column('member_since', db.DATETIME, default=datetime.utcnow))
+# group_member = db.Table('group_member',
+#                         db.Column('user.id', db.INTEGER, db.ForeignKey('users.id')),
+#                         db.Column('group_id', db.INTEGER, db.ForeignKey('groups.id')),
+#                         db.Column('member_since', db.DATETIME, default=datetime.utcnow))
+
+class GroupMember(db.Model):
+    __tablename__ = 'group_members'
+    member_id = db.Column(db.INTEGER, db.ForeignKey('users.id'), primary_key=True)
+    group_id = db.Column(db.INTEGER, db.ForeignKey('groups.id'), primary_key=True)
+    member_since = db.Column(db.DATETIME, default=datetime.utcnow)
+    admin = db.Column(db.BOOLEAN, default=False)
 
 
 class User(UserMixin, db.Model):
@@ -71,12 +78,12 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(64), unique=True, index=True)
     username = db.Column(db.String(64), unique=True, index=True)
+    name = db.Column(db.String(64))
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     password_hash = db.Column(db.String(128))
     confirmed = db.Column(db.Boolean, default=False)
-    name = db.Column(db.String(64))
     about_me = db.Column(db.Text())
-    member_since = db.Column(db.DateTime(), default=datetime.utcnow)
+    joined_since = db.Column(db.DateTime(), default=datetime.utcnow)
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
     avatar_hash = db.Column(db.String(32))  # https://en.gravatar.com/
     recipes = db.relationship('Recipe', backref='author', lazy='dynamic')
@@ -91,10 +98,16 @@ class User(UserMixin, db.Model):
                                 lazy='dynamic',
                                 cascade='all, delete-orphan')
     reviews = db.relationship('Review', backref='author', lazy='dynamic')
-    groups = db.relationship('Group',   # table name
-                             secondary='group_member',  # association table
-                             backref=db.backref('members', lazy='dynamic'),  # User.groups and Group.members
-                             lazy='dynamic')
+
+    groups = db.relationship('GroupMember',
+                             backref=db.backref('member', lazy='joined'),
+                             lazy='dynamic',
+                             cascade='all, delete-orphan')
+
+    # groups = db.relationship('Group',   # table name
+    #                          secondary='group_member',  # association table
+    #                          backref=db.backref('members', lazy='dynamic'),  # User.groups and Group.members
+    #                          lazy='dynamic')
 
     @staticmethod
     def generate_fake(count=100):
@@ -249,16 +262,16 @@ class User(UserMixin, db.Model):
     # membership part
     def member(self, group):
         if not self.is_member(group):
-            self.groups.append(group)
-            db.session.add(self)
+            gm = GroupMember(member=self, group=group)
+            db.session.add(gm)
 
     def unmember(self, group):
-        if self.is_member(group):
-            self.groups.remove(group)
-            db.session.add(self)
+        gm = self.groups.filter_by(group_id=group.id).first()
+        if gm:
+            db.session.delete(gm)
 
     def is_member(self, group):
-        return group in self.groups
+        return self.groups.filter_by(group_id=group.id).first() is not None
 
     def generate_auth_token(self, expiration):
         s = Serializer(current_app.config['SECRET_KEY'],
@@ -275,15 +288,10 @@ class User(UserMixin, db.Model):
         return User.query.get(data['id'])
 
     def __repr__(self):
-        return '<id: {:s}, User {:s}, email: {:s}, username: {:s}, role: <:s>, confirmed: <:s>>\n' \
+        return '<id: {!r}, User {!r}, email: {!r}>\n' \
             .format(self.id,
                     self.username,
-                    self.email,
-                    self.username,
-                    self.role_id,
-                    self.confirmed,
-                    self.name,
-                    self.groups)
+                    self.email)
 
 
 class AnonymousUser(AnonymousUserMixin):
@@ -304,21 +312,24 @@ def load_user(user_id):
 
 class Group(db.Model):
     __tablename__ = 'groups'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, index=True, primary_key=True)
     title = db.Column(db.String(100))
     about_group = db.Column(db.Text)
     grouped_since = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    members = db.relationship('GroupMember',
+                              backref=db.backref('group', lazy='joined'),
+                              lazy='dynamic',
+                              cascade='all, delete-orphan')
+    # admin =
 
     def __repr__(self):
-        return '<id {!r}, title: {!r}, about_group: {!r}>, member_since: <!r>' \
+        return '<id {!r}, title: {!r}>\n' \
             .format(self.id,
-                    self.title,
-                    self.about_group,
-                    self.member_since)
+                    self.title)
 
     # membership part
     def is_member(self, user):
-        return user in self.members
+        return self.members.filter_by(member_id=user.id).first() is not None
 
 
 class Recipe(db.Model):
@@ -378,3 +389,13 @@ class Review(db.Model):
 
 
 db.event.listen(Review.body, 'set', Review.on_changed_body)
+
+#
+# class Event(db.Model):
+#     __tablename__ = 'events'
+#     id = db.Column(db.INTEGER, index=True, primary_key=True)
+#     title = db.Column(db.String(64))
+#     location = db.Column(db.String(64))
+#     timestamp = db.Column(db.DATETIME, default=datetime.utcnow)
+#     about_event = db.Column(db.TEXT)
+

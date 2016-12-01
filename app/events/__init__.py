@@ -1,6 +1,5 @@
 from flask import Blueprint
 
-recipe = Blueprint('main', __name__)
+events = Blueprint('events', __name__)
 
 from . import views
-

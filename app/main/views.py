@@ -120,7 +120,7 @@ def recipe(id):
     page = request.args.get('page', 1, type=int)
     if page == -1:
         page = (recipe.reviews.count() - 1) // \
-            current_app.config['COOKZILLA_COMMENTS_PER_PAGE'] + 1
+               current_app.config['COOKZILLA_COMMENTS_PER_PAGE'] + 1
     pagination = recipe.reviews.order_by(Review.timestamp.asc()).paginate(
         page, per_page=current_app.config['COOKZILLA_COMMENTS_PER_PAGE'],
         error_out=False)
@@ -139,8 +139,8 @@ def edit(id):
     if form.validate_on_submit():
         recipe.body = form.body.data
         db.session.add(recipe)
-        flash('The recipe has been updated.')
-        return redirect(url_for('.recipe', id=recipe.id))
+        flash('The groups has been updated.')
+        return redirect(url_for('.groups', id=recipe.id))
     form.body.data = recipe.body
     return render_template('edit_recipe.html', form=form)
 

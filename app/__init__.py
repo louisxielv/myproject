@@ -40,7 +40,7 @@ def create_app(config_name):
     from .auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
 
-    from .recipe import recipe as recipe_blueprint
-    app.register_blueprint(recipe_blueprint, url_prefix='/recipe')
+    from .groups import groups as groups_blueprint
+    app.register_blueprint(groups_blueprint, url_prefix='/groups')
 
     return app
