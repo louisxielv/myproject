@@ -8,7 +8,7 @@
         <h1>Comment Moderation</h1>
     </div>
     {% set moderate = True %}
-    {% include '_reviews.html' %}
+    {% include 'recipes/_reviews.html' %}
     {% if pagination %}
         <div class="pagination">
             {{ macros.pagination_widget(pagination, '.moderate') }}

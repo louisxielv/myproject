@@ -14,7 +14,7 @@ if os.path.exists('.env'):
             os.environ[var[0]] = var[1]
 
 from app import create_app, db
-from app.models import User, Follow, Role, Permission, Recipe, Review, Group, GroupMember
+from app.models import User, Follow, Role, Permission, Recipe, Review, Group, GroupMember, Ingredient, Tag
 from flask_script import Manager, Shell
 from flask_migrate import Migrate, MigrateCommand
 
@@ -26,7 +26,8 @@ migrate = Migrate(app, db)
 def make_shell_context():
     return dict(app=app, db=db, User=User, Follow=Follow, Role=Role,
                 Permission=Permission, Recipe=Recipe, Review=Review,
-                Group=Group, GroupMember=GroupMember)
+                Group=Group, GroupMember=GroupMember, Ingredient=Ingredient,
+                Tag=Tag)
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
 
@@ -71,8 +72,18 @@ def deploy():
     # migrate database to latest revision
     upgrade()
 
+    db.drop_all()
+    db.create_all()
     # create user roles
     Role.insert_roles()
+    Tag.insert_tags()
+
+    # fake
+    u = User(email='nychent@gmail.com', username='chet', password='chet', confirmed=True)
+    db.session.add(u)
+    db.session.commit()
+    User.generate_fake()
+    Recipe.generate_fake()
 
     # create self-follows for all users
     User.add_self_follows()

@@ -10,7 +10,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from . import db, login_manager
 
+LENGTH = 64
 
+
+# user part
 class Permission:
     FOLLOW = 0x01
     COMMENT = 0x02
@@ -22,7 +25,7 @@ class Permission:
 class Role(db.Model):
     __tablename__ = 'roles'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), unique=True)
+    name = db.Column(db.String(LENGTH), unique=True)
     default = db.Column(db.Boolean, default=False, index=True)
     permissions = db.Column(db.Integer)
     users = db.relationship('User', backref='role', lazy='dynamic')
@@ -76,9 +79,9 @@ class GroupMember(db.Model):
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(64), unique=True, index=True)
-    username = db.Column(db.String(64), unique=True, index=True)
-    name = db.Column(db.String(64))
+    email = db.Column(db.String(LENGTH), unique=True, index=True)
+    username = db.Column(db.String(LENGTH), unique=True, index=True)
+    name = db.Column(db.String(LENGTH))
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     password_hash = db.Column(db.String(128))
     confirmed = db.Column(db.Boolean, default=False)
@@ -123,7 +126,7 @@ class User(UserMixin, db.Model):
                      confirmed=True,
                      name=forgery_py.name.full_name(),
                      about_me=forgery_py.lorem_ipsum.sentence(),
-                     member_since=forgery_py.date.date(True))
+                     joined_since=forgery_py.date.date(True))
             db.session.add(u)
             try:
                 db.session.commit()
@@ -136,7 +139,7 @@ class User(UserMixin, db.Model):
             if not user.is_following(user):
                 user.follow(user)
                 db.session.add(user)
-                db.session.commit()
+        db.session.commit()
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
@@ -230,8 +233,7 @@ class User(UserMixin, db.Model):
             url = 'https://secure.gravatar.com/avatar'
         else:
             url = 'http://www.gravatar.com/avatar'
-        hash = self.avatar_hash or hashlib.md5(
-            self.email.encode('utf-8')).hexdigest()
+        hash = self.avatar_hash or hashlib.md5(self.email.encode('utf-8')).hexdigest()
         return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(
             url=url, hash=hash, size=size, default=default, rating=rating)
 
@@ -310,36 +312,39 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-class Group(db.Model):
-    __tablename__ = 'groups'
-    id = db.Column(db.Integer, index=True, primary_key=True)
-    title = db.Column(db.String(100))
-    about_group = db.Column(db.Text)
-    grouped_since = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    members = db.relationship('GroupMember',
-                              backref=db.backref('group', lazy='joined'),
-                              lazy='dynamic',
-                              cascade='all, delete-orphan')
-    # admin =
+# recipe part
 
-    def __repr__(self):
-        return '<id {!r}, title: {!r}>\n' \
-            .format(self.id,
-                    self.title)
+# many to many relationship
+relates = db.Table('relates',
+                   db.Column('link_id', db.INTEGER, db.ForeignKey('recipes.id')),
+                   db.Column('linked_id', db.INTEGER, db.ForeignKey('recipes.id')))
 
-    # membership part
-    def is_member(self, user):
-        return self.members.filter_by(member_id=user.id).first() is not None
+recipe_tags = db.Table('recipe_tags',
+                       db.Column('recipe_id', db.INTEGER, db.ForeignKey('recipes.id')),
+                       db.Column('tag_id', db.INTEGER, db.ForeignKey('tags.id')))
 
 
 class Recipe(db.Model):
     __tablename__ = 'recipes'
     id = db.Column(db.Integer, primary_key=True)
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    title = db.Column(db.String(LENGTH))
+    serving = db.Column(db.INTEGER, default=1)  # less than 10
     body = db.Column(db.Text)
     body_html = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    ingredients = db.relationship('Ingredient', backref='recipe', lazy='dynamic')  # Ingredient.recipe
     reviews = db.relationship('Review', backref='recipe', lazy='dynamic')
+    links = db.relationship('Recipe',   # table name
+                            secondary=relates,  # association table
+                            primaryjoin=(relates.c.link_id == id),
+                            secondaryjoin=(relates.c.linked_id == id),
+                            backref=db.backref('linkeds', lazy='dynamic'),  # Recipe.links
+                            lazy='dynamic')
+    tags = db.relationship('Tag',
+                           secondary='recipe_tags',
+                           backref=db.backref('recipes', lazy='dynamic'),  # Recipe.tags and Tag.recipes
+                           lazy='dynamic')
 
     @staticmethod
     def generate_fake(count=100):
@@ -350,11 +355,12 @@ class Recipe(db.Model):
         user_count = User.query.count()
         for i in range(count):
             u = User.query.offset(randint(0, user_count - 1)).first()
-            p = Recipe(body=forgery_py.lorem_ipsum.sentences(randint(1, 10)),
+            p = Recipe(title=forgery_py.lorem_ipsum.sentences(randint(1, 2)),
+                       body=forgery_py.lorem_ipsum.sentences(randint(1, 10)),
                        timestamp=forgery_py.date.date(True),
                        author=u)
             db.session.add(p)
-            db.session.commit()
+        db.session.commit()
 
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
@@ -365,9 +371,50 @@ class Recipe(db.Model):
             markdown(value, output_format='html'),
             tags=allowed_tags, strip=True))
 
+    # link part
+    def link(self, recipe):
+        if not self.is_link(recipe):
+            self.links.append(recipe)
+            db.session.add(self)
+
+    def unlink(self, recipe):
+        if self.is_link(recipe):
+            self.links.remove(recipe)
+            db.session.add(self)
+
+    def is_link(self, recipe):
+        return recipe in self.links.all()
+
+
 db.event.listen(Recipe.body, 'set', Recipe.on_changed_body)
 
 
+# one to many
+
+class Ingredient(db.Model):
+    __tablename__ = 'ingredients'
+    name = db.Column(db.String(LENGTH), primary_key=True)
+    recipe_id = db.Column(db.Integer, db.ForeignKey('recipes.id'), primary_key=True)
+    unit = db.Column(db.String(LENGTH))
+    quantity = db.Column(db.INTEGER)
+
+
+class Tag(db.Model):
+    __tablename__ = 'tags'
+    id = db.Column(db.Integer, primary_key=True)
+    tag = db.Column(db.String(LENGTH))
+
+    @staticmethod
+    def insert_tags():
+        for t in current_app.config['RECIPE_TAGS']:
+            tag = Tag.query.filter_by(tag=t).first()
+            if tag is None:
+                tag = Tag(tag=t)
+                db.session.add(tag)
+        db.session.commit()
+
+
+# review part
 class Review(db.Model):
     __tablename__ = 'reviews'
     id = db.Column(db.Integer, primary_key=True)
@@ -394,8 +441,29 @@ db.event.listen(Review.body, 'set', Review.on_changed_body)
 # class Event(db.Model):
 #     __tablename__ = 'events'
 #     id = db.Column(db.INTEGER, index=True, primary_key=True)
-#     title = db.Column(db.String(64))
-#     location = db.Column(db.String(64))
+#     title = db.Column(db.String(LENGTH))
+#     location = db.Column(db.String(LENGTH))
 #     timestamp = db.Column(db.DATETIME, default=datetime.utcnow)
 #     about_event = db.Column(db.TEXT)
 
+
+class Group(db.Model):
+    __tablename__ = 'groups'
+    id = db.Column(db.Integer, index=True, primary_key=True)
+    title = db.Column(db.String(LENGTH))
+    about_group = db.Column(db.Text)
+    grouped_since = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    members = db.relationship('GroupMember',
+                              backref=db.backref('group', lazy='joined'),
+                              lazy='dynamic',
+                              cascade='all, delete-orphan')
+    # admin =
+
+    def __repr__(self):
+        return '<id {!r}, title: {!r}>\n' \
+            .format(self.id,
+                    self.title)
+
+    # membership part
+    def is_member(self, user):
+        return self.members.filter_by(member_id=user.id).first() is not None

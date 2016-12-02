@@ -5,9 +5,9 @@
 {% block title %}Cookzilla - Recipe{% endblock %}
 
 {% block page_content %}
-    {% include '_recipes.html' %}
+    {% include 'recipes/_recipes.html' %}
     <h4 id="reviews">Comments</h4>
-    {% include '_reviews.html' %}
+    {% include 'recipes/_reviews.html' %}
     {% if pagination %}
         <div class="pagination">
             {{ macros.pagination_widget(pagination, '.recipe', fragment='#reviews', id=recipes[0].id) }}

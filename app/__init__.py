@@ -5,6 +5,7 @@ from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_pagedown import PageDown
+from flask_wtf.csrf import CsrfProtect
 from config import config
 
 bootstrap = Bootstrap()
@@ -12,6 +13,7 @@ mail = Mail()
 moment = Moment()
 db = SQLAlchemy()
 pagedown = PageDown()
+csrf = CsrfProtect()
 
 login_manager = LoginManager()
 login_manager.session_protection = 'strong'
@@ -29,6 +31,7 @@ def create_app(config_name):
     db.init_app(app)
     login_manager.init_app(app)
     pagedown.init_app(app)
+    csrf.init_app(app)
 
     if not app.debug and not app.testing and not app.config['SSL_DISABLE']:
         from flask_sslify import SSLify
@@ -39,6 +42,9 @@ def create_app(config_name):
 
     from .auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
+
+    from .recipes import recipes as recipes_blueprint
+    app.register_blueprint(recipes_blueprint, url_prefix='/recipes')
 
     from .groups import groups as groups_blueprint
     app.register_blueprint(groups_blueprint, url_prefix='/groups')

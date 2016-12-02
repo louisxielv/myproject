@@ -1,6 +1,6 @@
 from flask_pagedown.fields import PageDownField
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, BooleanField, SelectField, SubmitField
+from wtforms import StringField, TextAreaField, BooleanField, SelectField, SubmitField, SelectMultipleField
 from wtforms import ValidationError
 from wtforms.validators import DataRequired, Length, Email, Regexp
 
@@ -32,8 +32,7 @@ class EditProfileAdminForm(FlaskForm):
 
     def __init__(self, user, *args, **kwargs):
         super(EditProfileAdminForm, self).__init__(*args, **kwargs)
-        self.role.choices = [(role.id, role.name)
-                             for role in Role.query.order_by(Role.name).all()]
+        self.role.choices = [(role.id, role.name) for role in Role.query.order_by(Role.name).all()]
         self.user = user
 
     def validate_email(self, field):
@@ -45,10 +44,10 @@ class EditProfileAdminForm(FlaskForm):
             raise ValidationError('Username already in use.')
 
 
-class RecipeForm(FlaskForm):
-    body = PageDownField("How to make your favourite food?", validators=[DataRequired()])
-    submit = SubmitField('Submit')
-
+# class RecipeForm(FlaskForm):
+#     body = PageDownField("How to make your favourite food?", validators=[DataRequired()])
+#     submit = SubmitField('Submit')
+#
 
 class SearchForm(FlaskForm):
     search = StringField('Search', validators=[DataRequired()])

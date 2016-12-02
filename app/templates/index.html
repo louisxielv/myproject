@@ -8,11 +8,11 @@
     <div class="page-header">
         <h1>Hello, {% if current_user.is_authenticated %}{{ current_user.username }}{% else %}Stranger{% endif %}!</h1>
     </div>
-    <div>
-        {% if current_user.can(Permission.WRITE_ARTICLES) %}
-            {{ wtf.quick_form(form) }}
-        {% endif %}
-    </div>
+{#    <div>#}
+{#        {% if current_user.can(Permission.WRITE_ARTICLES) %}#}
+{#            {{ wtf.quick_form(form) }}#}
+{#        {% endif %}#}
+{#    </div>#}
     <div class="recipe-tabs">
         <ul class="nav nav-tabs">
             <li{% if not show_followed %} class="active"{% endif %}><a href="{{ url_for('.show_all') }}">All</a></li>
@@ -21,7 +21,7 @@
                         href="{{ url_for('.show_followed') }}">Followers</a></li>
             {% endif %}
         </ul>
-        {% include '_recipes.html' %}
+        {% include 'recipes/_recipes.html' %}
     </div>
     {% if pagination %}
         <div class="pagination">
