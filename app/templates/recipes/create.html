@@ -5,6 +5,15 @@
     Cookzilla - Submit your recipe
 {% endblock %}
 
+
+{#<form class="form form-horizontal" method="post" role="form">#}
+{#  {{ form.hidden_tag() }}#}
+{#  {{ wtf.form_errors(form, hiddens="only") }}#}
+{##}
+{#  {{ wtf.form_field(form.field1) }}#}
+{#  {{ wtf.form_field(form.field2) }}#}
+{#</form>#}
+
 {% block page_content %}
     <div class="entry-box submit-article">
         <h4><strong>Submit Your Recipe</strong></h4>
@@ -43,3 +52,4 @@
     <script src="{{ url_for('static', filename='tinymce/js/tinymce/plugins/codesample/plugin.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/tinymce_setup.js') }}"></script>
 {% endblock %}
+

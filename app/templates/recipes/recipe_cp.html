@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "utils/_macros.html" as macros %}
+
+{% block title %}Cookzilla - Recipe{% endblock %}
+
+{% block page_content %}
+    {% include 'recipes/_recipes.html' %}
+    <h4 id="reviews">Comments</h4>
+    {% include 'recipes/_reviews.html' %}
+    {% if pagination %}
+        <div class="pagination">
+            {{ macros.pagination_widget(pagination, '.recipe', fragment='#reviews', id=recipes[0].id) }}
+        </div>
+    {% endif %}
+
+    {% if current_user.can(Permission.COMMENT) %}
+        <div class="review-form">
+            {{ wtf.quick_form(form) }}
+        </div>
+    {% endif %}
+{% endblock %}
+
+

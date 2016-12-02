@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% import "_macros.html" as macros %}
 
 {% block title %}Cookzilla - Comment Moderation{% endblock %}
 
@@ -9,9 +8,5 @@
     </div>
     {% set moderate = True %}
     {% include 'recipes/_reviews.html' %}
-    {% if pagination %}
-        <div class="pagination">
-            {{ macros.pagination_widget(pagination, '.moderate') }}
-        </div>
-    {% endif %}
+    {% include 'utils/_pagination.html' %}
 {% endblock %}

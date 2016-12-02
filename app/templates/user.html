@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% import "_macros.html" as macros %}
 
 {% block title %}Cookzilla - {{ user.username }}{% endblock %}
 
@@ -52,9 +51,5 @@
     </div>
     <h3>recipes by {{ user.username }}</h3>
     {% include 'recipes/_recipes.html' %}
-    {% if pagination %}
-        <div class="pagination">
-            {{ macros.pagination_widget(pagination, '.user', username=user.username) }}
-        </div>
-    {% endif %}
+    {% include 'utils/_pagination.html' %}
 {% endblock %}
