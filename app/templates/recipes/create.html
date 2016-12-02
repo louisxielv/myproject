@@ -2,51 +2,52 @@
 {% import "bootstrap/wtf.html" as wtf %}
 
 {% block title %}
-    Cookzilla - Submit your recipe
+    Cookzilla - Create your recipe
+{% endblock %}
+
+{% block stylesheet %}
+    {{ super() }}
+    <link rel="stylesheet" type="text/css"
+          href="{{ url_for('static', filename='tinymce/js/tinymce/plugins/codesample/css/prism.css') }}">
 {% endblock %}
 
 
-{#<form class="form form-horizontal" method="post" role="form">#}
-{#  {{ form.hidden_tag() }}#}
-{#  {{ wtf.form_errors(form, hiddens="only") }}#}
-{##}
-{#  {{ wtf.form_field(form.field1) }}#}
-{#  {{ wtf.form_field(form.field2) }}#}
-{#</form>#}
 
 {% block page_content %}
-    <div class="entry-box submit-article">
+    <div class="entry-box create-recipe">
         <h4><strong>Submit Your Recipe</strong></h4>
         <hr/>
-        {{ wtf.quick_form(recipe_form) }}
-        <hr/>
-        {{ wtf.quick_form(ingredient_form) }}
-{#        <form class="submit" method="post" action="">#}
-{#            {{ form.csrf_token }}#}
-{#            <div class="form-group">#}
-{#                {{ form.title.label(class='control-label') }}：#}
-{#                {{ form.source(class='', required='') }}#}
-{#                {{ form.title(class='submit-article-title', required='') }}（1-50字）#}
-{#            </div>#}
-{#            <div class="form-group">#}
-{#                {{ form.content() }}#}
-{#            </div>#}
-{#            <div class="form-group">#}
-{#                {{ form.types.label(class='control-label') }}：#}
-{#                {{ form.types() }}#}
-{#            </div>#}
-{#            <div class="form-group">#}
-{#                {{ form.summary.label(class='control-label') }}（显示在博客首页）<br>#}
-{#                {{ form.summary(class='submit-article-summary form-control', required='') }}#}
-{#            </div>#}
-{#            <div class="submit-article-button">#}
-{#                <button type="submit" class="btn btn-success">提交</button>#}
-{#            </div>#}
-{#        </form>#}
+        <form class="create_recipe" method="post" action="">
+            {{ recipe_form.csrf_token }}
+            <div class="form-group">
+                {{ recipe_form.title.label(class="control-label") }}
+                {{ recipe_form.title(class="create-recipe-title" , size=20) }}
+            </div>
+            <div class="form-group">
+                {{ recipe_form.serving.label(class="control-label") }}
+                {{ recipe_form.serving(class="", required="") }}
+            </div>
+            <div class="form-group">
+                {{ recipe_form.body.label(class="control-label") }}
+                {{ recipe_form.body() }}
+            </div>
+            <form class="form form-vertical" method="post" role="form">
+                {{ ingredient_form.hidden_tag() }}
+                {{ wtf.form_errors(ingredient_form, hiddens="only") }}
+
+                {{ wtf.form_field(ingredient_form.name) }}
+                {{ wtf.form_field(ingredient_form.unit) }}
+                {{ wtf.form_field(ingredient_form.quantity) }}
+            </form>
+
+            <input type="submit" value="Go">
+            <hr/>
+
+        </form>
     </div>
 {% endblock %}
 
-{% block script %}
+{% block scripts %}
     {{ super() }}
     <script src="{{ url_for('static', filename='tinymce/js/tinymce/tinymce.min.js') }}"></script>
     <script src="{{ url_for('static', filename='tinymce/js/tinymce/plugins/codesample/plugin.min.js') }}"></script>

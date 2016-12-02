@@ -17,11 +17,6 @@ def create():
     recipe_form = RecipeForm()
     ingredient_form = IngredientsForm()
 
-
-    # name = db.Column(db.String(LENGTH), primary_key=True)
-    # recipe_id = db.Column(db.Integer, db.ForeignKey('recipes.id'), primary_key=True)
-    # unit = db.Column(db.String(LENGTH))
-    # quantity = db.Column(db.INTEGER)
     if current_user.can(Permission.WRITE_ARTICLES) \
             and recipe_form.validate_on_submit() \
             and ingredient_form.validate_on_submit():
