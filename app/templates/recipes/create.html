@@ -18,7 +18,15 @@
         <h4><strong>Submit Your Recipe</strong></h4>
         <hr/>
         <form class="create_recipe" method="post" action="">
+            {{ photo_form.csrf_token }}
+            <div class="form-group">
+                Upload new File
+                {{ wtf.quick_form(photo_form, enctype='multipart/form-data') }}
+            </div>
+        </form>
+        <form class="create_recipe" method="post" action="">
             {{ recipe_form.csrf_token }}
+
             <div class="form-group">
                 {{ recipe_form.title.label(class="control-label") }}
                 {{ recipe_form.title(class="create-recipe-title" , size=20) }}
@@ -28,21 +36,30 @@
                 {{ recipe_form.serving(class="", required="") }}
             </div>
             <div class="form-group">
-                {{ recipe_form.body.label(class="control-label") }}
+                {{ recipe_form.body.label() }}
                 {{ recipe_form.body() }}
             </div>
-            <form class="form form-vertical" method="post" role="form">
-                {{ ingredient_form.hidden_tag() }}
-                {{ wtf.form_errors(ingredient_form, hiddens="only") }}
-
-                {{ wtf.form_field(ingredient_form.name) }}
-                {{ wtf.form_field(ingredient_form.unit) }}
-                {{ wtf.form_field(ingredient_form.quantity) }}
-            </form>
-
+            <div class="form-group">
+                {{ recipe_form.name.label() }}
+                {{ recipe_form.name(form_type="horizontal", horizontal_columns=('md', 1, 3)) }}
+            </div>
+            <div class="form-group">
+                {{ recipe_form.unit.label() }}
+                {{ recipe_form.unit(form_type="horizontal") }}
+            </div>
+            <div class="form-group">
+                {{ recipe_form.quantity.label() }}
+                {{ recipe_form.quantity(form_type="horizontal") }}
+            </div>
+            <div class="form-group">
+                {{ recipe_form.links.label() }}
+                {{ recipe_form.links(form_type="horizontal") }}
+            </div>
+            <div class="form-group">
+                {{ recipe_form.tags.label() }}
+                {{ recipe_form.tags(form_type="horizontal") }}
+            </div>
             <input type="submit" value="Go">
-            <hr/>
-
         </form>
     </div>
 {% endblock %}
@@ -51,6 +68,7 @@
     {{ super() }}
     <script src="{{ url_for('static', filename='tinymce/js/tinymce/tinymce.min.js') }}"></script>
     <script src="{{ url_for('static', filename='tinymce/js/tinymce/plugins/codesample/plugin.min.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/tinymce_setup.js') }}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='tinymce/js/tinymce/tinymce_setup.js') }}"></script>
 {% endblock %}
 

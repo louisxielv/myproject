@@ -331,7 +331,6 @@ class Recipe(db.Model):
     title = db.Column(db.String(LENGTH))
     serving = db.Column(db.INTEGER, default=1)  # less than 10
     body = db.Column(db.Text)
-    body_html = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     ingredients = db.relationship('Ingredient', backref='recipe', lazy='dynamic')  # Ingredient.recipe
     reviews = db.relationship('Review', backref='recipe', lazy='dynamic')
@@ -362,35 +361,36 @@ class Recipe(db.Model):
             db.session.add(p)
         db.session.commit()
 
-    @staticmethod
-    def on_changed_body(target, value, oldvalue, initiator):
-        allowed_tags = ['a', 'abbr', 'acronym', 'b', 'blockquote', 'code',
-                        'em', 'i', 'li', 'ol', 'pre', 'strong', 'ul',
-                        'h1', 'h2', 'h3', 'p']
-        target.body_html = bleach.linkify(bleach.clean(
-            markdown(value, output_format='html'),
-            tags=allowed_tags, strip=True))
-
     # link part
-    def link(self, recipe):
-        if not self.is_link(recipe):
-            self.links.append(recipe)
+    def link(self, link):
+        if not self.is_link(link):
+            self.links.append(link)
             db.session.add(self)
 
-    def unlink(self, recipe):
-        if self.is_link(recipe):
-            self.links.remove(recipe)
+    def unlink(self, link):
+        if self.is_link(link):
+            self.links.remove(link)
             db.session.add(self)
 
-    def is_link(self, recipe):
-        return recipe in self.links.all()
+    def is_link(self, link):
+        return link in self.links
 
+    # tag part
+    def tag(self, tag):
+        if not self.is_tag(tag):
+            self.tags.append(tag)
+            db.session.add(self)
 
-db.event.listen(Recipe.body, 'set', Recipe.on_changed_body)
+    def untag(self, tag):
+        if self.is_tag(tag):
+            self.tags.remove(tag)
+            db.session.add(self)
+
+    def is_tag(self, tag):
+        return tag in self.tags
 
 
 # one to many
-
 class Ingredient(db.Model):
     __tablename__ = 'ingredients'
     name = db.Column(db.String(LENGTH), primary_key=True)

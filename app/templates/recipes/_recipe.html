@@ -1,0 +1,56 @@
+<div class="recipes">
+    <div class="recipe-thumbnail">
+        <a href="{{ url_for('main.user', username=recipe.author.username) }}">
+            <img class="img-rounded profile-thumbnail" src="{{ recipe.author.gravatar(size=100) }}">
+        </a>
+    </div>
+    <div class="recipe-content">
+        <div class="recipe-date">
+            Last update: {{ moment(recipe.timestamp).fromNow() }}
+        </div>
+        <div class="recipe-author">
+            Author: <a
+                href="{{ url_for('main.user', username=recipe.author.username) }}">{{ recipe.author.username }}</a>
+        </div>
+        <div class="recipe-title">
+            Title: {{ recipe.title }}
+        </div>
+        <div class="recipe-body">
+            How to do it: {{ recipe.body | safe }}
+        </div>
+        <div class="recipe-serving">
+            Serving: {{ recipe.serving }}
+        </div>
+        <div class="recipe-ingredients">
+            Ingredient: {{ recipe.ingredients[0].name }} {{ recipe.ingredients[0].unit }} {{ recipe.ingredients[0].quantity }}
+        </div>
+        {% if recipe.tags.all() %}
+            <div class="recipe-tags">
+                tag: {{ recipe.tags.all() }}
+            </div>
+        {% endif %}
+        {% if recipe.links.all() %}
+            <div class="recipe-links">
+                link: {{ recipe.links[0].title }}
+            </div>
+        {% endif %}
+
+        <div class="recipe-footer">
+            {% if current_user == recipe.author %}
+                <a href="{{ url_for('recipes.edit', id=recipe.id) }}">
+                    <span class="label label-primary">Edit</span>
+                </a>
+            {% elif current_user.is_administrator() %}
+                <a href="{{ url_for('recipes.edit', id=recipe.id) }}">
+                    <span class="label label-danger">Edit [Admin]</span>
+                </a>
+            {% endif %}
+            <a href="{{ url_for('recipes.recipe', id=recipe.id) }}">
+                <span class="label label-default">Permalink</span>
+            </a>
+            <a href="{{ url_for('recipes.recipe', id=recipe.id) }}#reviews">
+                <span class="label label-primary">{{ recipe.reviews.count() }} Reviews</span>
+            </a>
+        </div>
+    </div>
+</div>
