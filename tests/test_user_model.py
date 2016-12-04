@@ -2,7 +2,7 @@ import unittest
 import time
 from datetime import datetime
 from app import create_app, db
-from app.models import User, AnonymousUser, Role, Permission, Follow, Group
+from app.models import User, AnonymousUser, Role, Permission, Follow, Group, GroupMember, Recipe
 
 
 class UserModelTestCase(unittest.TestCase):
@@ -121,7 +121,7 @@ class UserModelTestCase(unittest.TestCase):
         db.session.add(u)
         db.session.commit()
         self.assertTrue(
-            (datetime.utcnow() - u.member_since).total_seconds() < 3)
+            (datetime.utcnow() - u.joined_since).total_seconds() < 3)
         self.assertTrue(
             (datetime.utcnow() - u.last_seen).total_seconds() < 3)
 
@@ -216,13 +216,13 @@ class UserModelTestCase(unittest.TestCase):
         self.assertTrue(u1.groups.count() == 2)
         self.assertTrue(g1.members.count() == 2)
         g = u1.groups.all()[-1]
-        self.assertTrue(g == g2)
-        self.assertTrue(timestamp_before1 <= g.member_since <= timestamp_after)
+        self.assertTrue(g.group == g2)
+        self.assertTrue(timestamp_before <= g.member_since <= timestamp_after)
         u1.unmember(g2)
         db.session.add(u1)
         db.session.commit()
         self.assertTrue(u1.groups.count() == 1)
         self.assertTrue(g2.members.count() == 0)
         g = u1.groups.all()[-1]
-        self.assertTrue(g == g1)
+        self.assertTrue(g.group == g1)
 

@@ -1,0 +1,68 @@
+<div class="recipe">
+    {% if recipe.photos %}
+        <div class="recipe-thumbnail">
+            <a href="{{ url_for('recipes.recipe', id=recipe.id) }}">
+                <img class="img-rounded profile-thumbnail" src={{ recipe.photos }} height="100">
+            </a>
+        </div>
+    {% endif %}
+    <div class="recipe-content">
+        <div class="recipe-date">
+            Last update: {{ moment(recipe.timestamp).fromNow() }}
+        </div>
+        <div class="recipe-author">
+            Author: <a
+                href="{{ url_for('main.user', username=recipe.author.username) }}">{{ recipe.author.username }}</a>
+        </div>
+        <div class="user-thumbnail">
+            <a href="{{ url_for('main.user', username=recipe.author.username) }}">
+                <img class="img-rounded profile-thumbnail" src="{{ recipe.author.gravatar(size=100) }}">
+            </a>
+        </div>
+        <div class="recipe-title">
+            Title: {{ recipe.title }}
+        </div>
+        <div class="recipe-body">
+            How to do it: {{ recipe.body | safe }}
+        </div>
+        <div class="recipe-serving">
+            Serving: {{ recipe.serving }}
+        </div>
+        <div class="recipe-ingredients">
+            {% for ingredient in recipe.ingredients.all() %}
+                <p>Ingredient: {{ ingredient.name }} Unit: {{ ingredient.unit }}
+                    Quantity: {{ ingredient.quantity }}</p>
+            {% endfor %}
+        </div>
+        <div class="recipe-tags">
+            {% if recipe.tags.all() %}
+                Tag:
+                {% for tag in recipe.tags.all() %}
+                    {{ tag.tag }}
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class="recipe-links">
+            {% for link in recipe.links.all() %}
+                <p><a href="{{ url_for('recipes.recipe', id=link.id) }}">Link: {{ link.title }}</a></p>
+            {% endfor %}
+        </div>
+        <div class="recipe-footer">
+            {% if current_user == recipe.author %}
+                <a href="{{ url_for('recipes.edit', id=recipe.id) }}">
+                    <span class="label label-primary">Edit</span>
+                </a>
+            {% elif current_user.is_administrator() %}
+                <a href="{{ url_for('recipes.edit', id=recipe.id) }}">
+                    <span class="label label-danger">Edit [Admin]</span>
+                </a>
+            {% endif %}
+            <a href="{{ url_for('recipes.recipe', id=recipe.id) }}">
+                <span class="label label-default">Permalink</span>
+            </a>
+            <a href="{{ url_for('recipes.recipe', id=recipe.id) }}#reviews">
+                <span class="label label-primary">{{ recipe.reviews.count() }} Reviews</span>
+            </a>
+        </div>
+    </div>
+</div>

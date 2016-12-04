@@ -1,0 +1,5 @@
+{% from "bootstrap/pagination.html" import render_pagination %}
+
+<div class="pagination">
+    {{ render_pagination(pagination, prev='<', next='>') }}
+</div>

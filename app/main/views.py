@@ -1,12 +1,21 @@
 from flask import render_template, redirect, url_for, abort, flash, request, current_app, make_response
 from flask_login import login_required, current_user
 from flask_sqlalchemy import get_debug_queries
+from flask_wtf.csrf import CsrfProtect
 from . import main
-from .forms import EditProfileForm, EditProfileAdminForm, RecipeForm, ReviewForm, SearchForm
+from .forms import EditProfileForm, EditProfileAdminForm, ReviewForm, SearchForm
 from .. import db
 from ..models import Permission, Role, User, Recipe, Review
 
 from ..decorators import admin_required, permission_required
+from .. import csrf
+
+import os
+import re
+import json
+import random
+import urllib
+import datetime
 
 
 @main.after_app_request
@@ -33,11 +42,6 @@ def server_shutdown():
 
 @main.route('/', methods=['GET', 'POST'])
 def index():
-    form = RecipeForm()
-    if current_user.can(Permission.WRITE_ARTICLES) and form.validate_on_submit():
-        recipe = Recipe(body=form.body.data, author=current_user._get_current_object())
-        db.session.add(recipe)
-        return redirect(url_for('.index'))
     page = request.args.get('page', 1, type=int)
     show_followed = False
     if current_user.is_authenticated:
@@ -50,7 +54,7 @@ def index():
         page, per_page=current_app.config['COOKZILLA_POSTS_PER_PAGE'],
         error_out=False)
     recipes = pagination.items
-    return render_template('index.html', form=form, recipes=recipes,
+    return render_template('index.html', recipes=recipes,
                            show_followed=show_followed, pagination=pagination)
 
 
@@ -106,43 +110,43 @@ def edit_profile_admin(id):
     return render_template('edit_profile.html', form=form, user=user)
 
 
-@main.route('/recipe/<int:id>', methods=['GET', 'POST'])
-def recipe(id):
-    recipe = Recipe.query.get_or_404(id)
-    form = ReviewForm()
-    if form.validate_on_submit():
-        review = Review(body=form.body.data,
-                        recipe=recipe,
-                        author=current_user._get_current_object())
-        db.session.add(review)
-        flash('Your review has been published.')
-        return redirect(url_for('.recipe', id=recipe.id, page=-1))
-    page = request.args.get('page', 1, type=int)
-    if page == -1:
-        page = (recipe.reviews.count() - 1) // \
-            current_app.config['COOKZILLA_COMMENTS_PER_PAGE'] + 1
-    pagination = recipe.reviews.order_by(Review.timestamp.asc()).paginate(
-        page, per_page=current_app.config['COOKZILLA_COMMENTS_PER_PAGE'],
-        error_out=False)
-    reviews = pagination.items
-    return render_template('recipe.html', recipes=[recipe], form=form,
-                           reviews=reviews, pagination=pagination)
+# @main.route('/recipe/<int:id>', methods=['GET', 'POST'])
+# def recipe(id):
+#     recipe = Recipe.query.get_or_404(id)
+#     form = ReviewForm()
+#     if form.validate_on_submit():
+#         review = Review(body=form.body.data,
+#                         recipe=recipe,
+#                         author=current_user._get_current_object())
+#         db.session.add(review)
+#         flash('Your review has been published.')
+#         return redirect(url_for('.recipe', id=recipe.id, page=-1))
+#     page = request.args.get('page', 1, type=int)
+#     if page == -1:
+#         page = (recipe.reviews.count() - 1) // \
+#                current_app.config['COOKZILLA_COMMENTS_PER_PAGE'] + 1
+#     pagination = recipe.reviews.order_by(Review.timestamp.asc()).paginate(
+#         page, per_page=current_app.config['COOKZILLA_COMMENTS_PER_PAGE'],
+#         error_out=False)
+#     reviews = pagination.items
+#     return render_template('recipe.html', recipes=[recipe], form=form,
+#                            reviews=reviews, pagination=pagination)
 
 
-@main.route('/edit/<int:id>', methods=['GET', 'POST'])
-@login_required
-def edit(id):
-    recipe = Recipe.query.get_or_404(id)
-    if current_user != recipe.author and not current_user.can(Permission.ADMINISTER):
-        abort(403)
-    form = RecipeForm()
-    if form.validate_on_submit():
-        recipe.body = form.body.data
-        db.session.add(recipe)
-        flash('The recipe has been updated.')
-        return redirect(url_for('.recipe', id=recipe.id))
-    form.body.data = recipe.body
-    return render_template('edit_recipe.html', form=form)
+# @main.route('/edit/<int:id>', methods=['GET', 'POST'])
+# @login_required
+# def edit(id):
+#     recipe = Recipe.query.get_or_404(id)
+#     if current_user != recipe.author and not current_user.can(Permission.ADMINISTER):
+#         abort(403)
+#     form = RecipeForm()
+#     if form.validate_on_submit():
+#         recipe.body = form.body.data
+#         db.session.add(recipe)
+#         flash('The recipe has been updated.')
+#         return redirect(url_for('.recipe', id=recipe.id))
+#     form.body.data = recipe.body
+#     return render_template('edit_recipe.html', form=form)
 
 
 @main.route('/follow/<username>')
@@ -278,3 +282,9 @@ def search_results(query):
     return render_template('search_results.html',
                            query=query,
                            recipes=recipes)
+
+
+
+
+
+

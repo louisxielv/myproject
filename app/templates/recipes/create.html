@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}
+    Cookzilla - Create your recipe
+{% endblock %}
+
+{% block stylesheet %}
+    {{ super() }}
+    <link rel="stylesheet" type="text/css"
+          href="{{ url_for('static', filename='tinymce/js/tinymce/plugins/codesample/css/prism.css') }}">
+{% endblock %}
+
+
+{% block page_content %}
+    <div class="entry-box create-recipe">
+        <h4><strong>Create Your Own Recipe</strong></h4>
+        <hr/>
+        <form class="create_recipe" method="post" action="" enctype="multipart/form-data">
+            {{ recipe_form.csrf_token }}
+            {{ recipe_form.hidden_tag() }}
+
+            <div class="form-group">
+                {{ recipe_form.title.label(class="control-label") }}
+                {{ recipe_form.title(class="create-recipe-title") }}
+            </div>
+            <div class="form-group">
+                {{ recipe_form.photo.label(class="control-label") }}
+                {{ recipe_form.photo(class="create-recipe-photo") }}
+            </div>
+            <div class="form-group">
+                {{ recipe_form.serving.label(class="control-label") }}
+                {{ recipe_form.serving(class="", required="") }}
+            </div>
+            <div class="form-group">
+                {{ recipe_form.body.label() }}
+                {{ recipe_form.body(class="ckeditor") }}
+            </div>
+            <div class="form-group">
+                {{ recipe_form.ingredients(label="Must Input") }}
+                {{ recipe_form.ingredients_optical(label="Optical Input") }}
+            </div>
+            <div class="form-group">
+                {{ recipe_form.links.label() }}
+                {{ recipe_form.links(form_type="horizontal") }}
+            </div>
+            <div class="form-group">
+                {{ recipe_form.tags.label() }}
+                {{ recipe_form.tags(form_type="horizontal") }}
+            </div>
+            <input type="submit" value="Go">
+        </form>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='ckeditor/ckeditor.js') }}"></script>
+{% endblock %}
+

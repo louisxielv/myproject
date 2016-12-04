@@ -1,16 +1,31 @@
 {% extends "bootstrap/base.html" %}
-{#{% import "bootstrap/wtf.html" as wtf %}#}
 
 {% block title %}Cookzilla{% endblock %}
 
 {% block head %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}"/>
     {{ super() }}
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    {% block stylesheet %}
+        <link href="{{ url_for('static', filename='css/bootstrap.css') }}" rel="stylesheet">
+{#        <link href="{{ url_for('static', filename='css/common.css') }}" rel="stylesheet">#}
+    {% endblock %}
+    {#    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">#}
 {% endblock %}
 
 {% block navbar %}
+    <div class='header-top'>
+        <div class="container">
+            <h2 class="blog-title">
+                <li><a href="{{ url_for('main.index') }}">Cookzilla</a></li>
+            </h2>
+            {#            <p class="lead signature">#}
+            {#                {{ BlogInfo.query.first().signature }}#}
+            {#            </p>#}
+        </div>
+    </div>
     <div class="navbar navbar-inverse" role="navigation">
         <div class="container">
             <div class="navbar-header">
@@ -20,13 +35,14 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="{{ url_for('main.index') }}">Cookzilla</a>
+                {#                <a class="navbar-brand" href="{{ url_for('main.index') }}">Cookzilla</a>#}
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li><a href="{{ url_for('main.index') }}">Home</a></li>
                     {% if current_user.is_authenticated %}
-                        <li><a href="{{ url_for('main.user', username=current_user.username) }}">Profile</a></li>
+                        <li><a href="{{ url_for('main.user', username=current_user.username) }}">Me</a></li>
+                        <li><a href="{{ url_for('groups.group_list', username=current_user.username) }}">My Groups</a>
+                        </li>
                     {% endif %}
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
@@ -56,18 +72,46 @@
 
 {% block content %}
     <div class="container">
-        {% for message in get_flashed_messages() %}
-            <div class="alert alert-warning">
-                <button type="button" class="close" data-dismiss="alert">&times;</button>
-                {{ message }}
+        <div class="row">
+            <div class="col-md-9 article">
+                {% for message in get_flashed_messages() %}
+                    <div class="alert alert-warning">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+                {% block page_content %}{% endblock %}
             </div>
-        {% endfor %}
-
-        {% block page_content %}{% endblock %}
+            <div class="col-md-3 navbar">
+                <p> add tags add tags add add tags add tags add add tags add tags add add tags add tags add </p>
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        <p class="footer-content">
+            @2016
+            <a href="#">Cookzilla</a>
+            <span class="glyphicon glyphicon-heart">Made By Chet</span>
+        </p>
     </div>
 {% endblock %}
 
+
+
 {% block scripts %}
     {{ super() }}
+    <script src="{{ url_for('static', filename='js/bootstrap.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-3.1.1.min.js') }}"></script>
+    {# csrfToken for Ajax   #}
+    <script>
+        var csrfToken = $('meta[name="csrf-token"]').attr('content');
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type)) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken)
+                }
+            }
+        })
+    </script>
     {{ moment.include_moment() }}
 {% endblock %}
