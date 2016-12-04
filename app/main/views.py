@@ -1,13 +1,21 @@
 from flask import render_template, redirect, url_for, abort, flash, request, current_app, make_response
 from flask_login import login_required, current_user
 from flask_sqlalchemy import get_debug_queries
+from flask_wtf.csrf import CsrfProtect
 from . import main
 from .forms import EditProfileForm, EditProfileAdminForm, ReviewForm, SearchForm
-from app.recipes.forms import RecipeForm
 from .. import db
 from ..models import Permission, Role, User, Recipe, Review
 
 from ..decorators import admin_required, permission_required
+from .. import csrf
+
+import os
+import re
+import json
+import random
+import urllib
+import datetime
 
 
 @main.after_app_request
@@ -274,3 +282,9 @@ def search_results(query):
     return render_template('search_results.html',
                            query=query,
                            recipes=recipes)
+
+
+
+
+
+

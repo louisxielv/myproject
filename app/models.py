@@ -10,6 +10,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from . import db, login_manager
 
+# 128 is for avatar
 LENGTH = 64
 
 
@@ -83,7 +84,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(LENGTH), unique=True, index=True)
     name = db.Column(db.String(LENGTH))
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
-    password_hash = db.Column(db.String(128))
+    password_hash = db.Column(db.String(LENGTH * 2))
     confirmed = db.Column(db.Boolean, default=False)
     about_me = db.Column(db.Text())
     joined_since = db.Column(db.DateTime(), default=datetime.utcnow)
@@ -334,7 +335,7 @@ class Recipe(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     ingredients = db.relationship('Ingredient', backref='recipe', lazy='dynamic')  # Ingredient.recipe
     reviews = db.relationship('Review', backref='recipe', lazy='dynamic')
-    links = db.relationship('Recipe',   # table name
+    links = db.relationship('Recipe',  # table name
                             secondary=relates,  # association table
                             primaryjoin=(relates.c.link_id == id),
                             secondaryjoin=(relates.c.linked_id == id),
@@ -344,6 +345,8 @@ class Recipe(db.Model):
                            secondary='recipe_tags',
                            backref=db.backref('recipes', lazy='dynamic'),  # Recipe.tags and Tag.recipes
                            lazy='dynamic')
+
+    photos = db.Column(db.String(LENGTH*2), default="")
 
     @staticmethod
     def generate_fake(count=100):
@@ -437,6 +440,7 @@ class Review(db.Model):
 
 db.event.listen(Review.body, 'set', Review.on_changed_body)
 
+
 #
 # class Event(db.Model):
 #     __tablename__ = 'events'
@@ -457,6 +461,7 @@ class Group(db.Model):
                               backref=db.backref('group', lazy='joined'),
                               lazy='dynamic',
                               cascade='all, delete-orphan')
+
     # admin =
 
     def __repr__(self):

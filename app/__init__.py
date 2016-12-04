@@ -49,4 +49,7 @@ def create_app(config_name):
     from .groups import groups as groups_blueprint
     app.register_blueprint(groups_blueprint, url_prefix='/groups')
 
+    from .utils import utils as utils_blueprint
+    app.register_blueprint(utils_blueprint, url_prefix='/utils')
+
     return app
