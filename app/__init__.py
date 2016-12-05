@@ -46,9 +46,6 @@ def create_app(config_name):
     from .recipes import recipes as recipes_blueprint
     app.register_blueprint(recipes_blueprint, url_prefix='/recipes')
 
-    from .reviews import reviews as reviews_blueprint
-    app.register_blueprint(reviews_blueprint, url_prefix='/reviews')
-
     from .groups import groups as groups_blueprint
     app.register_blueprint(groups_blueprint, url_prefix='/groups')
 

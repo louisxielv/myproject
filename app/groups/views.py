@@ -11,8 +11,10 @@ from ..models import Group, Role, User, Recipe, Review, GroupMember
 def create():
     form = GroupForm()
     if form.validate_on_submit():
-        group = Group(title=form.title.data,
+        group = Group(creator=current_user,
+                      title=form.title.data,
                       about_group=form.about_group.data)
+        # add creator as member
         gm = GroupMember(member=current_user,
                          group=group)
         db.session.add(group)

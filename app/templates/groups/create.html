@@ -1,13 +1,40 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 
+{% block stylesheet %}
+    {{ super() }}
+    <link rel="stylesheet" type="text/css"
+          href="{{ url_for('static', filename='tinymce/js/tinymce/plugins/codesample/css/prism.css') }}">
+{% endblock %}
+
 {% block title %}Cookzilla - Create Your Group{% endblock %}
 
 {% block page_content %}
-    <div class="page-header">
-        <h1>Create your Group</h1>
+    <div class="entry-box create">
+        <h1><Strong>Create your Group</Strong></h1>
+        <hr/>
+        <form class="create" method="post" action="" enctype="multipart/form-data">
+            {{ form.csrf_token }}
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                {{ form.title.label(class="control-label") }}
+                {{ form.title(class="create-title") }}
+            </div>
+            <div class="form-group">
+                {{ form.about_group.label() }}
+                {{ form.about_group(class="ckeditor") }}
+            </div>
+                {{ form.submit() }}
+        </form>
     </div>
-    <div class="col-md-4">
-        {{ wtf.quick_form(form) }}
-    </div>
+{% endblock %}
+
+{% block side_content %}
+    tag
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='ckeditor/ckeditor.js') }}"></script>
 {% endblock %}

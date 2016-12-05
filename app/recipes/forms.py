@@ -3,7 +3,7 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileField
 from wtforms import StringField, TextAreaField, SelectField, SubmitField, \
     SelectMultipleField, FieldList, FormField
-from wtforms.validators import DataRequired, Length, Regexp, url, Optional, InputRequired
+from wtforms.validators import DataRequired, Length, url, Optional, InputRequired
 
 
 class PhotoForm(FlaskForm):
@@ -47,3 +47,16 @@ class RecipeForm(FlaskForm):
         self.serving.choices = [(_, _) for _ in range(1, 6)]  # (value, label) pairs
         self.tags.choices = [(str(i), _) for i, _ in enumerate(current_app.config['RECIPE_TAGS'], 1)]
         self.tags.default = ['1']
+
+
+class ReviewForm(FlaskForm):
+    title = StringField('Give a title', validators=[InputRequired(), Length(1, 64)])
+    body = TextAreaField("How about the recipe?", validators=[InputRequired()])
+    rating = SelectField("How do you like this?", coerce=int, validators=[InputRequired()])
+    suggestion = TextAreaField('Give some suggestions', validators=[Optional()])
+    submit = SubmitField('Submit')
+
+    def __init__(self, *args, **kwargs):
+        super(ReviewForm, self).__init__(*args, **kwargs)
+        self.rating.choices = [(_, _) for _ in range(1, 6)]  # (value, label) pairs
+        self.rating.default = ['5']
