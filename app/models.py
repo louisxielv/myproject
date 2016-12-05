@@ -360,6 +360,7 @@ recipe_tags = db.Table('recipe_tags',
 
 class Recipe(db.Model):
     __tablename__ = 'recipes'
+    __searchable__ = ['title', 'body', 'ingredients']
     id = db.Column(db.Integer, primary_key=True)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     photos = db.Column(db.String(LENGTH * 2), default="")

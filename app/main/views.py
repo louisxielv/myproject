@@ -1,12 +1,13 @@
 from flask import render_template, redirect, url_for, abort, flash, request, current_app, make_response
 from flask_login import login_required, current_user
 from flask_sqlalchemy import get_debug_queries
+import flask_whooshalchemy
 
 from . import main
 from .forms import EditProfileForm, EditProfileAdminForm, SearchForm
 from .. import db
 from ..decorators import admin_required, permission_required
-from ..models import Permission, Role, User, Recipe, Group, Event, Report, Tag
+from ..models import Permission, Role, User, Recipe, Tag
 
 
 @main.after_app_request
@@ -46,8 +47,10 @@ def index():
         error_out=False)
     recipes = pagination.items
     tags = Tag.query.all()
-
-    return render_template('index.html', recipes=recipes,
+    form = SearchForm()
+    if form.validate_on_submit():
+        return redirect(url_for('main.search_results', query=form.search.data))
+    return render_template('index.html', form=form, recipes=recipes,
                            show_followed=show_followed, pagination=pagination, tags=tags)
 
 
@@ -173,7 +176,7 @@ def followed_by(username):
 @login_required
 def show_all():
     resp = make_response(redirect(url_for('.index')))
-    resp.set_cookie('show_followed', '', max_age=30*24*60*60)
+    resp.set_cookie('show_followed', '', max_age=30 * 24 * 60 * 60)
     return resp
 
 
@@ -181,63 +184,14 @@ def show_all():
 @login_required
 def show_followed():
     resp = make_response(redirect(url_for('.index')))
-    resp.set_cookie('show_followed', '1', max_age=30*24*60*60)
+    resp.set_cookie('show_followed', '1', max_age=30 * 24 * 60 * 60)
     return resp
-
-# @main.route('/moderate')
-# @login_required
-# @permission_required(Permission.MODERATE_COMMENTS)
-# def moderate():
-#     page = request.args.get('page', 1, type=int)
-#     pagination = Review.query.order_by(Review.timestamp.desc()).paginate(
-#         page, per_page=current_app.config['COOKZILLA_COMMENTS_PER_PAGE'],
-#         error_out=False)
-#     reviews = pagination.items
-#     return render_template('moderate.html', reviews=reviews,
-#                            pagination=pagination, page=page)
-#
-#
-# @main.route('/moderate/enable/<int:id>')
-# @login_required
-# @permission_required(Permission.MODERATE_COMMENTS)
-# def moderate_enable(id):
-#     review = Review.query.get_or_404(id)
-#     review.disabled = False
-#     db.session.add(review)
-#     return redirect(url_for('.moderate',
-#                             page=request.args.get('page', 1, type=int)))
-#
-#
-# @main.route('/moderate/disable/<int:id>')
-# @login_required
-# @permission_required(Permission.MODERATE_COMMENTS)
-# def moderate_disable(id):
-#     review = Review.query.get_or_404(id)
-#     review.disabled = True
-#     db.session.add(review)
-#     return redirect(url_for('.moderate',
-#                             page=request.args.get('page', 1, type=int)))
-
-
-@main.route('/search', methods=['POST'])
-@login_required
-def search():
-    form = SearchForm()
-    if form.validate_on_submit():
-        return redirect(url_for('search_results', query=form.search.data))
-    return redirect(url_for('index'))
 
 
 @main.route('/search_results/<query>')
 @login_required
 def search_results(query):
     recipes = Recipe.query.whoosh_search(query, current_app.config['MAX_SEARCH_RESULTS']).all()
-    return render_template('search_results.html',
+    return render_template('utils/search_results.html',
                            query=query,
                            recipes=recipes)
-
-
-
-
-
-

@@ -28,9 +28,9 @@ class LinkForm(FlaskForm):
 class RecipeForm(FlaskForm):
     # recipe
     title = StringField('Give a title', validators=[InputRequired(), Length(1, 64)])
-    photo = FileField('Upload a finished image', validators=[DataRequired()])
-    serving = SelectField('The Number of Serving', coerce=int, validators=[InputRequired()])
-    body = TextAreaField("Tell us how to make it?", validators=[InputRequired()])
+    photo = FileField('Upload a finished image', validators=[Optional()])
+    serving = SelectField('The Number of Serving', coerce=int, validators=[Optional()])
+    body = TextAreaField("Tell us how to make it?", validators=[Optional()])
     # ingredients
     ingredients = FieldList(FormField(IngredientForm), min_entries=1)
     ingredients_optical = FieldList(FormField(IngredientForm), min_entries=4)

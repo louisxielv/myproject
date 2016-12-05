@@ -48,7 +48,6 @@ class Config:
     CLIENT_SECRET = 'fadb6addc1f2d5f8e09e4bf7dc5780e5071b9de6'
     # search
     WHOOSHEE_DIR = os.path.join(basedir, 'search.db')
-    PONYWHOOSH_DEBUG = False
     WHOSHEE_MIN_STRING_LEN = 3
     WHOOSHEE_WRITER_TIMEOUT = 2
     WHOOSHEE_URL = '/search_results'

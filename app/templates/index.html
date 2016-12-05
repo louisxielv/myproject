@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
-{% import "utils/_macros.html" as macros %}
 
 {% block title %}Cookzilla{% endblock %}
 
@@ -13,7 +12,7 @@
             <li{% if not show_followed %} class="active"{% endif %}><a href="{{ url_for('.show_all') }}">All</a></li>
             {% if current_user.is_authenticated %}
                 <li{% if show_followed %} class="active"{% endif %}><a
-                        href="{{ url_for('.show_followed') }}">Followers</a></li>
+                        href="{{ url_for('.show_followed') }}">For me</a></li>
             {% endif %}
         </ul>
         {% include 'recipes/_recipes.html' %}
@@ -24,8 +23,18 @@
 {% endblock %}
 
 {% block side_content %}
-    {% include "tags/_tags.html" %}
-    <div>search</div>
+    {% if current_user.is_authenticated %}
+        <div>Tag</div>
+        {% include "tags/_tags.html" %}
+        {% include "utils/search.html" %}
+    {% else %}
+        <p>This Chen and Lyu.
+            <br>
+            Welcome to Cookzilla, where you can share recipes, find good foods, meet eaters, and have fun!
+            <br>
+            So, <a href="{{ url_for("auth.register") }}">SIGN UP</a> and access to millions of recipes.
+        </p>
+    {% endif %}
 {% endblock %}
 
 {% block scripts %}

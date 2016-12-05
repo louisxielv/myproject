@@ -1,8 +1,6 @@
-from flask import render_template, redirect, url_for, flash, request, current_app
-from flask_login import current_user
+from flask import render_template, request, current_app
 
 from . import tags
-from .. import db
 from ..models import Tag, Recipe
 
 
@@ -14,4 +12,5 @@ def tag(id):
         page, per_page=current_app.config['COOKZILLA_COMMENTS_PER_PAGE'],
         error_out=False)
     recipes = pagination.items
-    return render_template('tags/tag.html', recipes=recipes, pagination=pagination)
+    tags = Tag.query.all()
+    return render_template('tags/tag.html', recipes=recipes, pagination=pagination, tags=tags)
