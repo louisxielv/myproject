@@ -17,3 +17,13 @@ def permission_required(permission):
 
 def admin_required(f):
     return permission_required(Permission.ADMINISTER)(f)
+
+# def member_required():
+#     def decorator(f):
+#         @wraps(f)
+#         def decorated_function(*args, **kwargs):
+#             if current_user.is_member(member):
+#                 abort(403)
+#             return f(*args, **kwargs)
+#         return decorated_function
+#     return decorator

@@ -507,7 +507,7 @@ class Group(db.Model):
                               backref=db.backref('group', lazy='joined'),
                               lazy='dynamic',
                               cascade='all, delete-orphan')
-    events =
+    # events = db.relationship()
 
     def __repr__(self):
         return '<id {!r}, title: {!r}>\n'.format(self.id, self.title)
@@ -516,23 +516,23 @@ class Group(db.Model):
     def is_member(self, user):
         return self.members.filter_by(member_id=user.id).first() is not None
 
-
-class Event(db.Model):
-    __tablename__ = 'events'
-    id = db.Column(db.INTEGER, index=True, primary_key=True)
-    creator_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    title = db.Column(db.String(LENGTH))
-    timestamp = db.Column(db.DATETIME, default=datetime.utcnow)
-    location = db.Column(db.String(LENGTH))
-    about_event = db.Column(db.TEXT)
-    rsvp =
-    reports =
-
-
-class Report(db.Model):
-    __tablename__ = "reports"
-    id = db.Column(db.INTEGER, index=True, primary_key=True)
-    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    title = db.Column(db.String(LENGTH))
-    timestamp = db.Column(db.DATETIME, default=datetime.utcnow)
-    body = db.Column(db.TEXT)
+#
+# class Event(db.Model):
+#     __tablename__ = 'events'
+#     id = db.Column(db.INTEGER, index=True, primary_key=True)
+#     creator_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+#     title = db.Column(db.String(LENGTH))
+#     timestamp = db.Column(db.DATETIME, default=datetime.utcnow)
+#     location = db.Column(db.String(LENGTH))
+#     about_event = db.Column(db.TEXT)
+#     rsvp =
+#     reports =
+#
+#
+# class Report(db.Model):
+#     __tablename__ = "reports"
+#     id = db.Column(db.INTEGER, index=True, primary_key=True)
+#     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+#     title = db.Column(db.String(LENGTH))
+#     timestamp = db.Column(db.DATETIME, default=datetime.utcnow)
+#     body = db.Column(db.TEXT)
