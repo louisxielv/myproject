@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 import os
+
 COV = None
 if os.environ.get('FLASK_COVERAGE'):
     import coverage
+
     COV = coverage.coverage(branch=True, include='app/*')
     COV.start()
 
@@ -14,7 +16,8 @@ if os.path.exists('.env'):
             os.environ[var[0]] = var[1]
 
 from app import create_app, db
-from app.models import User, Follow, Role, Permission, Recipe, Review, Group, GroupMember, Ingredient, Tag
+from app.models import User, Follow, Role, Permission, Recipe, Review, Group, GroupMember, Ingredient, Tag, Event, \
+    Report
 from flask_script import Manager, Shell
 from flask_migrate import Migrate, MigrateCommand
 
@@ -27,7 +30,9 @@ def make_shell_context():
     return dict(app=app, db=db, User=User, Follow=Follow, Role=Role,
                 Permission=Permission, Recipe=Recipe, Review=Review,
                 Group=Group, GroupMember=GroupMember, Ingredient=Ingredient,
-                Tag=Tag)
+                Tag=Tag, Event=Event, Report=Report)
+
+
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
 

@@ -72,7 +72,14 @@ class GroupMember(db.Model):
     member_id = db.Column(db.INTEGER, db.ForeignKey('users.id'), primary_key=True)
     group_id = db.Column(db.INTEGER, db.ForeignKey('groups.id'), primary_key=True)
     member_since = db.Column(db.DATETIME, default=datetime.utcnow)
-    admin = db.Column(db.BOOLEAN, default=False)
+
+
+class RSVP(db.Model):
+    __tablename__ = 'rsvps'
+    member_id = db.Column(db.INTEGER, db.ForeignKey('users.id'), primary_key=True)
+    event_id = db.Column(db.INTEGER, db.ForeignKey('events.id'), primary_key=True)
+    timestamp = db.Column(db.DATETIME, default=datetime.utcnow)
+    status = db.Column(db.INTEGER, default=0)  # 0 not go, 1: go, others: not sure
 
 
 class User(UserMixin, db.Model):
@@ -100,8 +107,14 @@ class User(UserMixin, db.Model):
                                 lazy='dynamic',
                                 cascade='all, delete-orphan')
     reviews = db.relationship('Review', backref='author', lazy='dynamic')
-
+    my_groups = db.relationship("Group", backref="creator", lazy="dynamic")  # groups created by user
     groups = db.relationship('GroupMember',
+                             backref=db.backref('member', lazy='joined'),
+                             lazy='dynamic',
+                             cascade='all, delete-orphan')
+    my_events = db.relationship("Event", backref="creator", lazy="dynamic")  # events created by user
+    # user rsvps events
+    events = db.relationship('RSVP',
                              backref=db.backref('member', lazy='joined'),
                              lazy='dynamic',
                              cascade='all, delete-orphan')
@@ -273,6 +286,27 @@ class User(UserMixin, db.Model):
 
     def is_member(self, group):
         return self.groups.filter_by(group_id=group.id).first() is not None
+
+    # event part
+    def get_all_events(self):
+        return [e for g in self.groups.all() for e in g.group.events.all()]
+
+    def get_all_available_events(self):
+        return [e for g in self.groups.all() for e in g.group.events.all() if e.timestamp > datetime.utcnow()]
+
+    # rsvp part
+    def rsvp(self, event):
+        if self.is_member(event.group) and not self.is_rsvp(event):
+            r = RSVP(member=self, event=event, status=1)
+            db.session.add(r)
+
+    def unrsvp(self, event):
+        if self.is_member(event.group) and not self.is_rsvp(event):
+            r = RSVP(member=self, event=event, status=0)
+            db.session.add(r)
+
+    def is_rsvp(self, event):
+        return self.events.filter_by(event_id=event.id).first() is not None
 
     def generate_auth_token(self, expiration):
         s = Serializer(current_app.config['SECRET_KEY'],
@@ -495,7 +529,6 @@ class Review(db.Model):
 
 
 # group part
-
 class Group(db.Model):
     __tablename__ = 'groups'
     id = db.Column(db.Integer, index=True, primary_key=True)
@@ -507,7 +540,7 @@ class Group(db.Model):
                               backref=db.backref('group', lazy='joined'),
                               lazy='dynamic',
                               cascade='all, delete-orphan')
-    # events = db.relationship()
+    events = db.relationship('Event', backref='group', lazy='dynamic')
 
     def __repr__(self):
         return '<id {!r}, title: {!r}>\n'.format(self.id, self.title)
@@ -516,23 +549,39 @@ class Group(db.Model):
     def is_member(self, user):
         return self.members.filter_by(member_id=user.id).first() is not None
 
-#
-# class Event(db.Model):
-#     __tablename__ = 'events'
-#     id = db.Column(db.INTEGER, index=True, primary_key=True)
-#     creator_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-#     title = db.Column(db.String(LENGTH))
-#     timestamp = db.Column(db.DATETIME, default=datetime.utcnow)
-#     location = db.Column(db.String(LENGTH))
-#     about_event = db.Column(db.TEXT)
-#     rsvp =
-#     reports =
-#
-#
-# class Report(db.Model):
-#     __tablename__ = "reports"
-#     id = db.Column(db.INTEGER, index=True, primary_key=True)
-#     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-#     title = db.Column(db.String(LENGTH))
-#     timestamp = db.Column(db.DATETIME, default=datetime.utcnow)
-#     body = db.Column(db.TEXT)
+    def get_available_events(self):
+        return [e for e in self.events.all() if e.timestamp > datetime.utcnow()]
+
+
+class Event(db.Model):
+    __tablename__ = 'events'
+    id = db.Column(db.INTEGER, index=True, primary_key=True)
+    group_id = db.Column(db.Integer, db.ForeignKey('groups.id'))
+    creator_id = db.Column(db.Integer, db.ForeignKey('users.id'))  # should be a member
+    title = db.Column(db.String(LENGTH))
+    timestamp = db.Column(db.DATETIME, default=datetime.utcnow)
+    location = db.Column(db.String(LENGTH))
+    about_event = db.Column(db.TEXT)
+    reports = db.relationship('Report', backref='event', lazy='dynamic')
+    rsvps = db.relationship('RSVP',
+                            backref=db.backref('event', lazy='joined'),
+                            lazy='dynamic',
+                            cascade='all, delete-orphan')
+
+    def is_rsvp(self, user):
+        return self.rsvps.filter_by(member_id=user.id).first() is not None
+
+    def is_event_of_group(self, group):
+        return self in group.events
+
+    def is_event_of_user(self, user):
+        return self in user.my_events
+
+class Report(db.Model):
+    __tablename__ = "reports"
+    id = db.Column(db.INTEGER, index=True, primary_key=True)
+    event_id = db.Column(db.Integer, db.ForeignKey('events.id'))
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))  # should be a member
+    title = db.Column(db.String(LENGTH))
+    timestamp = db.Column(db.DATETIME, default=datetime.utcnow)
+    body = db.Column(db.TEXT)
