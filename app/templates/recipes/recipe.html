@@ -4,15 +4,22 @@
 {% block title %}Cookzilla - Recipe{% endblock %}
 
 {% block page_content %}
-    {% include 'recipes/_recipes.html' %}
+    {% include 'recipes/_recipe.html' %}
     <h4 id="reviews">Comments</h4>
-    {% include 'recipes/_reviews.html' %}
-    {% include 'utils/_pagination.html' %}
-    {% if current_user.can(Permission.COMMENT) %}
-        <div class="review-form">
-            {{ wtf.quick_form(form) }}
-        </div>
+    {% if reviews %}
+        {% include 'reviews/_reviews.html' %}
+        {% include 'utils/_pagination.html' %}
     {% endif %}
+    {% include "reviews/create.html" %}
 {% endblock %}
 
+{% block side_content %}
+    {% with target_user=recipe.author %}
+        {% include "utils/_side_user_info.html" %}
+    {% endwith %}
+{% endblock %}
 
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='ckeditor/ckeditor.js') }}"></script>
+{% endblock %}

@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from flask_sqlalchemy import get_debug_queries
 from flask_wtf.csrf import CsrfProtect
 from . import main
-from .forms import EditProfileForm, EditProfileAdminForm, ReviewForm, SearchForm
+from .forms import EditProfileForm, EditProfileAdminForm, SearchForm
 from .. import db
 from ..models import Permission, Role, User, Recipe, Review
 
@@ -110,45 +110,6 @@ def edit_profile_admin(id):
     return render_template('edit_profile.html', form=form, user=user)
 
 
-# @main.route('/recipe/<int:id>', methods=['GET', 'POST'])
-# def recipe(id):
-#     recipe = Recipe.query.get_or_404(id)
-#     form = ReviewForm()
-#     if form.validate_on_submit():
-#         review = Review(body=form.body.data,
-#                         recipe=recipe,
-#                         author=current_user._get_current_object())
-#         db.session.add(review)
-#         flash('Your review has been published.')
-#         return redirect(url_for('.recipe', id=recipe.id, page=-1))
-#     page = request.args.get('page', 1, type=int)
-#     if page == -1:
-#         page = (recipe.reviews.count() - 1) // \
-#                current_app.config['COOKZILLA_COMMENTS_PER_PAGE'] + 1
-#     pagination = recipe.reviews.order_by(Review.timestamp.asc()).paginate(
-#         page, per_page=current_app.config['COOKZILLA_COMMENTS_PER_PAGE'],
-#         error_out=False)
-#     reviews = pagination.items
-#     return render_template('recipe.html', recipes=[recipe], form=form,
-#                            reviews=reviews, pagination=pagination)
-
-
-# @main.route('/edit/<int:id>', methods=['GET', 'POST'])
-# @login_required
-# def edit(id):
-#     recipe = Recipe.query.get_or_404(id)
-#     if current_user != recipe.author and not current_user.can(Permission.ADMINISTER):
-#         abort(403)
-#     form = RecipeForm()
-#     if form.validate_on_submit():
-#         recipe.body = form.body.data
-#         db.session.add(recipe)
-#         flash('The recipe has been updated.')
-#         return redirect(url_for('.recipe', id=recipe.id))
-#     form.body.data = recipe.body
-#     return render_template('edit_recipe.html', form=form)
-
-
 @main.route('/follow/<username>')
 @login_required
 @permission_required(Permission.FOLLOW)
@@ -231,39 +192,39 @@ def show_followed():
     return resp
 
 
-@main.route('/moderate')
-@login_required
-@permission_required(Permission.MODERATE_COMMENTS)
-def moderate():
-    page = request.args.get('page', 1, type=int)
-    pagination = Review.query.order_by(Review.timestamp.desc()).paginate(
-        page, per_page=current_app.config['COOKZILLA_COMMENTS_PER_PAGE'],
-        error_out=False)
-    reviews = pagination.items
-    return render_template('moderate.html', reviews=reviews,
-                           pagination=pagination, page=page)
-
-
-@main.route('/moderate/enable/<int:id>')
-@login_required
-@permission_required(Permission.MODERATE_COMMENTS)
-def moderate_enable(id):
-    review = Review.query.get_or_404(id)
-    review.disabled = False
-    db.session.add(review)
-    return redirect(url_for('.moderate',
-                            page=request.args.get('page', 1, type=int)))
-
-
-@main.route('/moderate/disable/<int:id>')
-@login_required
-@permission_required(Permission.MODERATE_COMMENTS)
-def moderate_disable(id):
-    review = Review.query.get_or_404(id)
-    review.disabled = True
-    db.session.add(review)
-    return redirect(url_for('.moderate',
-                            page=request.args.get('page', 1, type=int)))
+# @main.route('/moderate')
+# @login_required
+# @permission_required(Permission.MODERATE_COMMENTS)
+# def moderate():
+#     page = request.args.get('page', 1, type=int)
+#     pagination = Review.query.order_by(Review.timestamp.desc()).paginate(
+#         page, per_page=current_app.config['COOKZILLA_COMMENTS_PER_PAGE'],
+#         error_out=False)
+#     reviews = pagination.items
+#     return render_template('moderate.html', reviews=reviews,
+#                            pagination=pagination, page=page)
+#
+#
+# @main.route('/moderate/enable/<int:id>')
+# @login_required
+# @permission_required(Permission.MODERATE_COMMENTS)
+# def moderate_enable(id):
+#     review = Review.query.get_or_404(id)
+#     review.disabled = False
+#     db.session.add(review)
+#     return redirect(url_for('.moderate',
+#                             page=request.args.get('page', 1, type=int)))
+#
+#
+# @main.route('/moderate/disable/<int:id>')
+# @login_required
+# @permission_required(Permission.MODERATE_COMMENTS)
+# def moderate_disable(id):
+#     review = Review.query.get_or_404(id)
+#     review.disabled = True
+#     db.session.add(review)
+#     return redirect(url_for('.moderate',
+#                             page=request.args.get('page', 1, type=int)))
 
 
 @main.route('/search', methods=['POST'])

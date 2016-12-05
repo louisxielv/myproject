@@ -74,19 +74,28 @@ def deploy():
 
     db.drop_all()
     db.create_all()
+    print("set up db")
     # create user roles
     Role.insert_roles()
     Tag.insert_tags()
-
+    print("insert all")
     # fake
     u = User(email='nychent@gmail.com', username='chet', password='chet', confirmed=True)
     db.session.add(u)
     db.session.commit()
     User.generate_fake()
+    print("user good")
+
     Recipe.generate_fake()
+    Ingredient.generate_fake()
+    Tag.generate_fake()
+    print("recipe good")
+    Review.generate_fake()
+    print("review good")
 
     # create self-follows for all users
     User.add_self_follows()
+    print("self follow")
 
 
 if __name__ == '__main__':

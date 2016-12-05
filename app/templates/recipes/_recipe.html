@@ -1,26 +1,18 @@
 <div class="recipe">
     {% if recipe.photos %}
         <div class="recipe-thumbnail">
+            Title picture:
             <a href="{{ url_for('recipes.recipe', id=recipe.id) }}">
-                <img class="img-rounded profile-thumbnail" src={{ recipe.photos }} height="100">
+                <img class="img-rounded profile-thumbnail" alt="missing photo" src={{ recipe.photos }} height="100">
             </a>
         </div>
     {% endif %}
     <div class="recipe-content">
-        <div class="recipe-date">
-            Last update: {{ moment(recipe.timestamp).fromNow() }}
-        </div>
-        <div class="recipe-author">
-            Author: <a
-                href="{{ url_for('main.user', username=recipe.author.username) }}">{{ recipe.author.username }}</a>
-        </div>
-        <div class="user-thumbnail">
-            <a href="{{ url_for('main.user', username=recipe.author.username) }}">
-                <img class="img-rounded profile-thumbnail" src="{{ recipe.author.gravatar(size=100) }}">
-            </a>
-        </div>
         <div class="recipe-title">
             Title: {{ recipe.title }}
+        </div>
+        <div class="recipe-date">
+            Last update: {{ moment(recipe.timestamp).fromNow() }}
         </div>
         <div class="recipe-body">
             How to do it: {{ recipe.body | safe }}

@@ -1,0 +1,21 @@
+{% if recipe %}
+    <div class="recipe-author">
+        Recipe Author: <a
+            href="{{ url_for('main.user', username=recipe.author.username) }}">{{ recipe.author.username }}</a>
+    </div>
+    <div class="user-thumbnail">
+        <a href="{{ url_for('main.user', username=recipe.author.username) }}">
+            <img class="img-rounded profile-thumbnail" src="{{ recipe.author.gravatar(size=100) }}">
+        </a>
+    </div>
+    <div>
+        {% if current_user.can(Permission.FOLLOW) and current_user != recipe.author %}
+            {% if not current_user.is_following(recipe.author) %}
+                <a href="{{ url_for('main.follow', username=recipe.author.username) }}" class="btn btn-primary">Follow</a>
+            {% else %}
+                <a href="{{ url_for('main.unfollow', username=recipe.author.username) }}"
+                   class="btn btn-default">Unfollow</a>
+            {% endif %}
+        {% endif %}
+    </div>
+{% endif %}

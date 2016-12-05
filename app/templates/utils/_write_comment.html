@@ -1,0 +1,5 @@
+{% if current_user.can(Permission.COMMENT) %}
+    <div class="review-form">
+        {{ wtf.quick_form(form) }}
+    </div>
+{% endif %}
