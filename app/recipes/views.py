@@ -4,7 +4,7 @@ from flask_login import login_required, current_user
 from app.recipes.forms import RecipeForm
 from . import recipes
 from .. import db
-from ..main.forms import ReviewForm
+from ..reviews.forms import ReviewForm
 from ..models import Permission, Recipe, Review, Ingredient, Tag
 from ..utils.Imgur import Imgur
 from ..utils.tools import gen_rnd_filename
@@ -108,7 +108,10 @@ def recipe(id):
     recipe = Recipe.query.get_or_404(id)
     form = ReviewForm()
     if form.validate_on_submit():
-        review = Review(body=form.body.data,
+        review = Review(title=form.title.data,
+                        body=form.body.data,
+                        rating=form.rating.data,
+                        suggestion=form.suggestion.data,
                         recipe=recipe,
                         author=current_user._get_current_object())
         db.session.add(review)
@@ -122,7 +125,7 @@ def recipe(id):
         page, per_page=current_app.config['COOKZILLA_COMMENTS_PER_PAGE'],
         error_out=False)
     reviews = pagination.items
-    return render_template('recipes/recipe_full.html', recipe=recipe, form=form,
+    return render_template('recipes/recipe.html', recipe=recipe, form=form,
                            reviews=reviews, pagination=pagination)
 
 

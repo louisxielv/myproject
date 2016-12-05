@@ -1,11 +1,9 @@
 import hashlib
 from datetime import datetime
 
-import bleach
 from flask import current_app, request
 from flask_login import UserMixin, AnonymousUserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from markdown import markdown
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from . import db, login_manager
@@ -329,6 +327,7 @@ class Recipe(db.Model):
     __tablename__ = 'recipes'
     id = db.Column(db.Integer, primary_key=True)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    photos = db.Column(db.String(LENGTH * 2), default="")
     title = db.Column(db.String(LENGTH))
     serving = db.Column(db.INTEGER, default=1)  # less than 10
     body = db.Column(db.Text)
@@ -346,10 +345,8 @@ class Recipe(db.Model):
                            backref=db.backref('recipes', lazy='dynamic'),  # Recipe.tags and Tag.recipes
                            lazy='dynamic')
 
-    photos = db.Column(db.String(LENGTH*2), default="")
-
     @staticmethod
-    def generate_fake(count=100):
+    def generate_fake(count=500):
         from random import seed, randint
         import forgery_py
 
@@ -357,7 +354,9 @@ class Recipe(db.Model):
         user_count = User.query.count()
         for i in range(count):
             u = User.query.offset(randint(0, user_count - 1)).first()
-            p = Recipe(title=forgery_py.lorem_ipsum.sentences(randint(1, 2)),
+            p = Recipe(photos=u.gravatar(size=200),
+                       title=forgery_py.lorem_ipsum.sentences(randint(1, 2)),
+                       serving=randint(1, 5),
                        body=forgery_py.lorem_ipsum.sentences(randint(1, 10)),
                        timestamp=forgery_py.date.date(True),
                        author=u)
@@ -401,6 +400,27 @@ class Ingredient(db.Model):
     unit = db.Column(db.String(LENGTH))
     quantity = db.Column(db.INTEGER)
 
+    @staticmethod
+    def generate_fake(count=1000):
+        from sqlalchemy.exc import IntegrityError
+        from random import seed, randint, choice
+        import forgery_py
+
+        seed()
+        recipe_count = Recipe.query.count()
+        icc = list(current_app.config["INGREDIENT_CONVERSION"].keys())
+        for _ in range(count):
+            r = Recipe.query.offset(randint(0, recipe_count - 1)).first()
+            i = Ingredient(name=forgery_py.lorem_ipsum.word(),
+                           unit=choice(icc),
+                           quantity=randint(0, 1000) + 1,
+                           recipe=r)
+            db.session.add(i)
+            try:
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+
 
 class Tag(db.Model):
     __tablename__ = 'tags'
@@ -416,6 +436,24 @@ class Tag(db.Model):
                 db.session.add(tag)
         db.session.commit()
 
+    @staticmethod
+    def generate_fake(count=1000):
+        from sqlalchemy.exc import IntegrityError
+        from random import seed, randint
+
+        seed()
+        recipe_count = Recipe.query.count()
+        tag_count = Tag.query.count()
+        for _ in range(count):
+            r = Recipe.query.offset(randint(0, recipe_count - 1)).first()
+            t = Tag.query.offset(randint(0, tag_count - 1)).first()
+            r.tag(t)
+            db.session.add(r)
+            try:
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+
 
 # review part
 class Review(db.Model):
@@ -423,37 +461,45 @@ class Review(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.Text)
     body = db.Column(db.Text)
-    body_html = db.Column(db.Text)
+    rating = db.Column(db.INTEGER, default=5)
+    suggestion = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     disabled = db.Column(db.Boolean)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     recipe_id = db.Column(db.Integer, db.ForeignKey('recipes.id'))
 
     @staticmethod
-    def on_changed_body(target, value, oldvalue, initiator):
-        allowed_tags = ['a', 'abbr', 'acronym', 'b', 'code', 'em', 'i',
-                        'strong']
-        target.body_html = bleach.linkify(bleach.clean(
-            markdown(value, output_format='html'),
-            tags=allowed_tags, strip=True))
+    def generate_fake(count=1000):
+        from random import seed, randint
+        from sqlalchemy.exc import IntegrityError
+        import forgery_py
+
+        seed()
+        user_count = User.query.count()
+        recipe_count = Recipe.query.count()
+        for _ in range(count):
+            u = User.query.offset(randint(0, user_count - 1)).first()
+            rp = Recipe.query.offset(randint(0, recipe_count - 1)).first()
+            rv = Review(title=forgery_py.lorem_ipsum.sentences(randint(1, 2)),
+                        body=forgery_py.lorem_ipsum.sentences(randint(1, 10)),
+                        rating=randint(0, 4) + 1,
+                        suggestion=forgery_py.lorem_ipsum.sentences(randint(1, 2)),
+                        timestamp=forgery_py.date.date(True),
+                        author=u,
+                        recipe=rp)
+            db.session.add(rv)
+            try:
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
 
 
-db.event.listen(Review.body, 'set', Review.on_changed_body)
-
-
-#
-# class Event(db.Model):
-#     __tablename__ = 'events'
-#     id = db.Column(db.INTEGER, index=True, primary_key=True)
-#     title = db.Column(db.String(LENGTH))
-#     location = db.Column(db.String(LENGTH))
-#     timestamp = db.Column(db.DATETIME, default=datetime.utcnow)
-#     about_event = db.Column(db.TEXT)
-
+# group part
 
 class Group(db.Model):
     __tablename__ = 'groups'
     id = db.Column(db.Integer, index=True, primary_key=True)
+    creator_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     title = db.Column(db.String(LENGTH))
     about_group = db.Column(db.Text)
     grouped_since = db.Column(db.DateTime, index=True, default=datetime.utcnow)
@@ -461,14 +507,32 @@ class Group(db.Model):
                               backref=db.backref('group', lazy='joined'),
                               lazy='dynamic',
                               cascade='all, delete-orphan')
-
-    # admin =
+    events =
 
     def __repr__(self):
-        return '<id {!r}, title: {!r}>\n' \
-            .format(self.id,
-                    self.title)
+        return '<id {!r}, title: {!r}>\n'.format(self.id, self.title)
 
     # membership part
     def is_member(self, user):
         return self.members.filter_by(member_id=user.id).first() is not None
+
+
+class Event(db.Model):
+    __tablename__ = 'events'
+    id = db.Column(db.INTEGER, index=True, primary_key=True)
+    creator_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    title = db.Column(db.String(LENGTH))
+    timestamp = db.Column(db.DATETIME, default=datetime.utcnow)
+    location = db.Column(db.String(LENGTH))
+    about_event = db.Column(db.TEXT)
+    rsvp =
+    reports =
+
+
+class Report(db.Model):
+    __tablename__ = "reports"
+    id = db.Column(db.INTEGER, index=True, primary_key=True)
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    title = db.Column(db.String(LENGTH))
+    timestamp = db.Column(db.DATETIME, default=datetime.utcnow)
+    body = db.Column(db.TEXT)

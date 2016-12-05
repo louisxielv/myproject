@@ -53,6 +53,4 @@ class SearchForm(FlaskForm):
     search = StringField('Search', validators=[DataRequired()])
 
 
-class ReviewForm(FlaskForm):
-    body = StringField('Enter your review', validators=[DataRequired()])
-    submit = SubmitField('Submit')
+
