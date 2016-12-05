@@ -118,6 +118,7 @@ class User(UserMixin, db.Model):
                              backref=db.backref('member', lazy='joined'),
                              lazy='dynamic',
                              cascade='all, delete-orphan')
+    reports = db.relationship('Report', backref='author', lazy='dynamic')
 
     # groups = db.relationship('Group',   # table name
     #                          secondary='group_member',  # association table
@@ -552,6 +553,41 @@ class Group(db.Model):
     def get_available_events(self):
         return [e for e in self.events.all() if e.timestamp > datetime.utcnow()]
 
+    @staticmethod
+    def generate_fake(count=10):
+        from random import seed, randint
+        from sqlalchemy.exc import IntegrityError
+        import forgery_py
+
+        seed()
+        user_count = User.query.count()
+        for _ in range(count):
+            u = User.query.offset(randint(0, user_count - 1)).first()
+            g = Group(creator=u,
+                      title=forgery_py.lorem_ipsum.sentences(randint(1, 2)),
+                      about_group=forgery_py.lorem_ipsum.sentences(randint(1, 10)),
+                      grouped_since=forgery_py.date.date(True))
+            # creator as member
+            u.member(g)
+            db.session.add(u)
+            db.session.add(g)
+            try:
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+        # add member
+        group_count = Group.query.count()
+        for _ in range(count * count):
+            u = User.query.offset(randint(0, user_count - 1)).first()
+            g = Group.query.offset(randint(0, group_count - 1)).first()
+            u.member(g)
+            db.session.add(u)
+            db.session.add(g)
+            try:
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+
 
 class Event(db.Model):
     __tablename__ = 'events'
@@ -577,6 +613,37 @@ class Event(db.Model):
     def is_event_of_user(self, user):
         return self in user.my_events
 
+    @staticmethod
+    def generate_fake(count=100):
+        from random import seed, randint
+        from sqlalchemy.exc import IntegrityError
+        import forgery_py
+
+        seed()
+        user_count = User.query.count()
+        group_count = Group.query.count()
+        for _ in range(count):
+            u = User.query.offset(randint(0, user_count - 1)).first()
+            g = Group.query.offset(randint(0, group_count - 1)).first()
+            e = Event(group=g,
+                      creator=u,
+                      title=forgery_py.lorem_ipsum.sentences(randint(1, 2)),
+                      timestamp=forgery_py.date.date(True),
+                      location=forgery_py.address.city(),
+                      about_event=forgery_py.lorem_ipsum.sentences(randint(1, 10)))
+
+            # creator as member
+            u.rsvp(e)
+
+            db.session.add(u)
+            db.session.add(g)
+            db.session.add(e)
+            try:
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+
+
 class Report(db.Model):
     __tablename__ = "reports"
     id = db.Column(db.INTEGER, index=True, primary_key=True)
@@ -585,3 +652,27 @@ class Report(db.Model):
     title = db.Column(db.String(LENGTH))
     timestamp = db.Column(db.DATETIME, default=datetime.utcnow)
     body = db.Column(db.TEXT)
+
+    @staticmethod
+    def generate_fake(count=1000):
+        from random import seed, randint
+        from sqlalchemy.exc import IntegrityError
+        import forgery_py
+
+        seed()
+        user_count = User.query.count()
+        event_count = Event.query.count()
+        for _ in range(count):
+            u = User.query.offset(randint(0, user_count - 1)).first()
+            e = Event.query.offset(randint(0, event_count - 1)).first()
+            r = Report(event=e,
+                       author=u,
+                       title=forgery_py.lorem_ipsum.sentences(randint(1, 2)),
+                       timestamp=forgery_py.date.date(True),
+                       body=forgery_py.lorem_ipsum.sentences(randint(1, 10)))
+
+            db.session.add(r)
+            try:
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()

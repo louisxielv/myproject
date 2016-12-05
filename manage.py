@@ -72,7 +72,6 @@ def profile(length=25, profile_dir=None):
 def deploy():
     """Run deployment tasks."""
     from flask_migrate import upgrade
-    from app.models import Role, User, Recipe
 
     # migrate database to latest revision
     upgrade()
@@ -101,6 +100,16 @@ def deploy():
     # create self-follows for all users
     User.add_self_follows()
     print("self follow")
+
+    # group
+    Group.generate_fake()
+    print("group ready")
+
+    Event.generate_fake()
+    print("event ready")
+
+    Report.generate_fake()
+    print("report ready")
 
 
 if __name__ == '__main__':
