@@ -26,6 +26,7 @@ def create():
 
 
 @groups.route('/<int:id>', methods=['GET', 'POST'])
+@login_required
 def group_profile(id):
     group = Group.query.get_or_404(id)
     # form = ReviewForm()
@@ -63,3 +64,21 @@ def group_list(username):
     return render_template('groups/group_members.html', user=user,
                            endpoint='.groups', pagination=pagination,
                            groups=groups)
+
+
+# @groups.route('/<username>')
+# @login_required
+# def group_list(username):
+#     user = User.query.filter_by(username=username).first()
+#     if user is None:
+#         flash('Invalid user.')
+#         return redirect(url_for('.index'))
+#     page = request.args.get('page', 1, type=int)
+#     pagination = user.groups.paginate(
+#         page, per_page=current_app.config['COOKZILLA_FOLLOWERS_PER_PAGE'],
+#         error_out=False)
+#     groups = [{'user': item.member, 'group': item.group, 'member_since': item.member_since}
+#               for item in pagination.items]
+#     return render_template('groups/group_members.html', user=user,
+#                            endpoint='.groups', pagination=pagination,
+#                            groups=groups)

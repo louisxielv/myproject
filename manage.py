@@ -17,7 +17,7 @@ if os.path.exists('.env'):
 
 from app import create_app, db
 from app.models import User, Follow, Role, Permission, Recipe, Review, Group, GroupMember, Ingredient, Tag, Event, \
-    Report
+    Report, RSVP
 from flask_script import Manager, Shell
 from flask_migrate import Migrate, MigrateCommand
 
@@ -30,7 +30,7 @@ def make_shell_context():
     return dict(app=app, db=db, User=User, Follow=Follow, Role=Role,
                 Permission=Permission, Recipe=Recipe, Review=Review,
                 Group=Group, GroupMember=GroupMember, Ingredient=Ingredient,
-                Tag=Tag, Event=Event, Report=Report)
+                Tag=Tag, Event=Event, Report=Report, RSVP=RSVP)
 
 
 manager.add_command("shell", Shell(make_context=make_shell_context))
@@ -84,8 +84,10 @@ def deploy():
     Tag.insert_tags()
     print("insert all")
     # fake
-    u = User(email='nychent@gmail.com', username='chet', password='chet', confirmed=True)
-    db.session.add(u)
+    u1 = User(email='nychent@gmail.com', username='chet', password='chet', confirmed=True)
+    u2 = User(email='louisxielv@gmail.com', username='louisxielv', password='123', confirmed=True)
+    db.session.add(u1)
+    db.session.add(u2)
     db.session.commit()
     User.generate_fake()
     print("user good")

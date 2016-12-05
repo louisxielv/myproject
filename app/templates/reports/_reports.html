@@ -1,0 +1,25 @@
+<ul class="reviews">
+    {% for report in reports %}
+        <li class="review">
+            <div class="review-thumbnail">
+                <a href="{{ url_for('main.user', username=report.author.username) }}">
+                    <img class="img-rounded profile-thumbnail" src="{{ report.author.gravatar(size=40) }}">
+                </a>
+            </div>
+            <div class="review-content">
+                <div class="review-date">
+                    {{ moment(report.timestamp).fromNow() }}
+                </div>
+                <div class="review-author">
+                    <a href="{{ url_for('main.user', username=report.author.username) }}">{{ report.author.username }}</a>
+                </div>
+                <div class="review-title">
+                    Title: {{ report.title }}
+                </div>
+                <div class="review-body">
+                        Report: {{ report.body | safe }}
+                </div>
+            </div>
+        </li>
+    {% endfor %}
+</ul>

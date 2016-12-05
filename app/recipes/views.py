@@ -1,9 +1,10 @@
 from flask import render_template, redirect, url_for, abort, flash, request, current_app
 from flask_login import login_required, current_user
 
-from app.recipes.forms import RecipeForm, ReviewForm
+from app.recipes.forms import RecipeForm
 from . import recipes
 from .. import db
+from .forms import ReviewForm
 from ..models import Permission, Recipe, Review, Ingredient, Tag
 from ..utils.Imgur import Imgur
 from ..utils.tools import gen_rnd_filename

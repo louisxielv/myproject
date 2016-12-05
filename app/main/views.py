@@ -54,8 +54,17 @@ def index():
         page, per_page=current_app.config['COOKZILLA_POSTS_PER_PAGE'],
         error_out=False)
     recipes = pagination.items
+
+    show_groups = False
+    if current_user.is_authenticated:
+        show_groups = bool(request.cookies.get('show_groups', ''))
+    show_events = False
+    if current_user.is_authenticated:
+        show_events = bool(request.cookies.get('show_events', ''))
     return render_template('index.html', recipes=recipes,
-                           show_followed=show_followed, pagination=pagination)
+                           show_followed=show_followed, pagination=pagination,
+                           show_groups=show_groups,
+                           show_events=show_events)
 
 
 @main.route('/user/<username>')
