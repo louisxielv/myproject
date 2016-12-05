@@ -1,8 +1,9 @@
-import unittest
 import time
+import unittest
 from datetime import datetime
+
 from app import create_app, db
-from app.models import User, AnonymousUser, Role, Permission, Follow, Group, GroupMember, Recipe
+from app.models import User, AnonymousUser, Role, Permission, Follow, Group, Event, Report
 
 
 class UserModelTestCase(unittest.TestCase):
@@ -144,7 +145,7 @@ class UserModelTestCase(unittest.TestCase):
         with self.app.test_request_context('/', base_url='https://example.com'):
             gravatar_ssl = u.gravatar()
         self.assertTrue('http://www.gravatar.com/avatar/' +
-                        'd4c74594d841139328695756648b6bd6'in gravatar)
+                        'd4c74594d841139328695756648b6bd6' in gravatar)
         self.assertTrue('s=256' in gravatar_256)
         self.assertTrue('r=pg' in gravatar_pg)
         self.assertTrue('d=retro' in gravatar_retro)
@@ -225,4 +226,90 @@ class UserModelTestCase(unittest.TestCase):
         self.assertTrue(g2.members.count() == 0)
         g = u1.groups.all()[-1]
         self.assertTrue(g.group == g1)
+
+    def test_events(self):
+        u1 = User(email='john@example.com', password='cat')
+        u2 = User(email='susan@example.org', password='dog')
+        u3 = User(email='john@exaple.com', password='cat')
+        u4 = User(email='suan@example.org', password='dog')
+
+        g1 = Group(title='whatfood', creator=u1)
+        g2 = Group(title='hayguys', creator=u2)
+
+        db.session.add(g1)
+        db.session.add(g2)
+
+        db.session.add(u1)
+        db.session.add(u2)
+        db.session.add(u3)
+        db.session.add(u4)
+
+        self.assertFalse(u1.is_member(g1))
+        self.assertFalse(u2.is_member(g1))
+        self.assertFalse(u3.is_member(g1))
+        self.assertFalse(u4.is_member(g1))
+
+        u1.member(g1)
+        u2.member(g1)
+        u2.member(g2)
+        u3.member(g1)
+        u4.member(g1)
+        db.session.add(u1)
+        db.session.add(u2)
+        db.session.add(u3)
+        db.session.add(u4)
+        self.assertTrue(u1.is_member(g1))
+        self.assertTrue(u2.is_member(g1))
+        self.assertTrue(u3.is_member(g1))
+        self.assertTrue(u4.is_member(g1))
+
+        e1 = Event(title='a', group=g1, creator=u1, timestamp=datetime(2017, 1, 5, 14, 51, 54, 111111))
+        e2 = Event(title='b', group=g1, creator=u2)
+        db.session.add(e1)
+        db.session.add(e2)
+
+        self.assertTrue(e1.is_event_of_group(g1))
+        self.assertTrue(e2.is_event_of_group(g1))
+        self.assertTrue(e1.is_event_of_user(u1))
+        self.assertFalse(e1.is_event_of_user(u2))
+        self.assertTrue(e1 in u1.get_all_events())
+        self.assertTrue(e2 in u1.get_all_events())
+        self.assertTrue(e1 in u1.get_all_available_events())
+        self.assertFalse(e2 in u1.get_all_available_events())
+        self.assertTrue(e1 in g1.get_available_events())
+        self.assertFalse(e2 in g1.get_available_events())
+        self.assertFalse(u1.is_rsvp(e1))
+        self.assertFalse(u2.is_rsvp(e1))
+        self.assertFalse(u3.is_rsvp(e1))
+        self.assertFalse(u4.is_rsvp(e1))
+
+        u1.rsvp(e1)
+        u2.unrsvp(e1)
+        u3.rsvp(e1)
+        db.session.add(u1)
+        db.session.add(u2)
+        db.session.add(u3)
+        self.assertTrue(u1.is_rsvp(e1))
+        self.assertTrue(u2.is_rsvp(e1))
+        self.assertTrue(u3.is_rsvp(e1))
+        self.assertFalse(u4.is_rsvp(e1))
+        self.assertTrue(e1.is_rsvp(u1))
+        self.assertFalse(e1.is_rsvp(u4))
+
+        # self.assertTrue(e1 in u1.get_all_events())
+        # self.assertFalse(e2 in u1.get_all_events())
+        # datetime.datetime(2017, 1, 5, 14, 51, 54, 111111)
+
+    def test_reports(self):
+        e1 = Event(title='a')
+        e2 = Event(title='b')
+        r1 = Report(title='c', event=e1)
+        r2 = Report(title='d', event=e1)
+        db.session.add(r1)
+        db.session.add(r2)
+        db.session.add(e1)
+        db.session.add(e2)
+        self.assertTrue(r1 in e1.reports)
+        self.assertTrue(r2 in e1.reports)
+        self.assertFalse(r2 in e2.reports)
 
