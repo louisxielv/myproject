@@ -1,0 +1,9 @@
+<ul class="tags">
+    {% for tag in tags %}
+        <li class="tag">
+            <div class="tag-content">
+                <a href="{{ url_for('tags.tag', id=tag.id)}}">{{ tag.tag }}</a>
+            </div>
+        </li>
+    {% endfor %}
+</ul>

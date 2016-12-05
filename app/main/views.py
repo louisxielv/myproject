@@ -1,21 +1,12 @@
 from flask import render_template, redirect, url_for, abort, flash, request, current_app, make_response
 from flask_login import login_required, current_user
 from flask_sqlalchemy import get_debug_queries
-from flask_wtf.csrf import CsrfProtect
+
 from . import main
 from .forms import EditProfileForm, EditProfileAdminForm, SearchForm
 from .. import db
-from ..models import Permission, Role, User, Recipe, Review
-
 from ..decorators import admin_required, permission_required
-from .. import csrf
-
-import os
-import re
-import json
-import random
-import urllib
-import datetime
+from ..models import Permission, Role, User, Recipe, Group, Event, Report, Tag
 
 
 @main.after_app_request
@@ -54,17 +45,10 @@ def index():
         page, per_page=current_app.config['COOKZILLA_POSTS_PER_PAGE'],
         error_out=False)
     recipes = pagination.items
+    tags = Tag.query.all()
 
-    show_groups = False
-    if current_user.is_authenticated:
-        show_groups = bool(request.cookies.get('show_groups', ''))
-    show_events = False
-    if current_user.is_authenticated:
-        show_events = bool(request.cookies.get('show_events', ''))
     return render_template('index.html', recipes=recipes,
-                           show_followed=show_followed, pagination=pagination,
-                           show_groups=show_groups,
-                           show_events=show_events)
+                           show_followed=show_followed, pagination=pagination, tags=tags)
 
 
 @main.route('/user/<username>')
@@ -199,7 +183,6 @@ def show_followed():
     resp = make_response(redirect(url_for('.index')))
     resp.set_cookie('show_followed', '1', max_age=30*24*60*60)
     return resp
-
 
 # @main.route('/moderate')
 # @login_required

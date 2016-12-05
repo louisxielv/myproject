@@ -52,6 +52,9 @@ def create_app(config_name):
     from .events import events as events_blueprint
     app.register_blueprint(events_blueprint, url_prefix='/events')
 
+    from .tags import tags as tags_blueprint
+    app.register_blueprint(tags_blueprint, url_prefix='/tags')
+
     from .utils import utils as utils_blueprint
     app.register_blueprint(utils_blueprint, url_prefix='/utils')
 

@@ -14,23 +14,18 @@
             {% if current_user.is_authenticated %}
                 <li{% if show_followed %} class="active"{% endif %}><a
                         href="{{ url_for('.show_followed') }}">Followers</a></li>
-                <li{% if show_followed %} class="active"{% endif %}><a
-                        href="{{ url_for('.show_followed') }}">Followers</a></li>
-
             {% endif %}
         </ul>
         {% include 'recipes/_recipes.html' %}
     </div>
     {% if pagination %}
-        <div class="pagination">
-            {{ macros.pagination_widget(pagination, '.index') }}
-        </div>
+        {% include 'utils/_pagination.html' %}
     {% endif %}
 {% endblock %}
 
 {% block side_content %}
-    tag
-    search
+    {% include "tags/_tags.html" %}
+    <div>search</div>
 {% endblock %}
 
 {% block scripts %}
