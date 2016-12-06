@@ -1,13 +1,12 @@
 from flask import render_template, redirect, url_for, abort, flash, request, current_app, make_response
 from flask_login import login_required, current_user
 from flask_sqlalchemy import get_debug_queries
-import flask_whooshalchemy
 
 from . import main
 from .forms import EditProfileForm, EditProfileAdminForm, SearchForm
 from .. import db
 from ..decorators import admin_required, permission_required
-from ..models import Permission, Role, User, Recipe, Tag
+from ..models import Permission, Role, User, Recipe, Tag, Follow
 
 
 @main.after_app_request
@@ -62,7 +61,19 @@ def user(username):
         page, per_page=current_app.config['COOKZILLA_POSTS_PER_PAGE'],
         error_out=False)
     recipes = pagination.items
-    return render_template('user.html', user=user, recipes=recipes,
+
+    follows = user.followers.filter(Follow.follower_id != user.id).order_by(Follow.timestamp.desc()).limit(
+        current_app.config["COOKZILLA_FOLLOWERS_PER_PAGE"]).all()
+    followers = [{'user': item.follower, 'timestamp': item.timestamp}
+                 for item in follows]
+
+    follows = user.followed.filter(Follow.followed_id != user.id).order_by(Follow.timestamp.desc()).limit(
+        current_app.config["COOKZILLA_FOLLOWERS_PER_PAGE"]).all()
+    followeds = [{'user': item.followed, 'timestamp': item.timestamp}
+                 for item in follows]
+
+    return render_template('users/user.html', user=user, recipes=recipes,
+                           followers=followers, followeds=followeds,
                            pagination=pagination)
 
 
@@ -78,7 +89,7 @@ def edit_profile():
         return redirect(url_for('.user', username=current_user.username))
     form.name.data = current_user.name
     form.about_me.data = current_user.about_me
-    return render_template('edit_profile.html', form=form)
+    return render_template('users/edit_profile.html', form=form)
 
 
 @main.route('/edit-profile/<int:id>', methods=['GET', 'POST'])
@@ -103,7 +114,7 @@ def edit_profile_admin(id):
     form.role.data = user.role_id
     form.name.data = user.name
     form.about_me.data = user.about_me
-    return render_template('edit_profile.html', form=form, user=user)
+    return render_template('users/edit_profile.html', form=form, user=user)
 
 
 @main.route('/follow/<username>')
@@ -145,12 +156,12 @@ def followers(username):
         flash('Invalid user.')
         return redirect(url_for('.index'))
     page = request.args.get('page', 1, type=int)
-    pagination = user.followers.paginate(
+    pagination = user.followers.filter(Follow.follower_id != user.id).order_by(Follow.timestamp.desc()).paginate(
         page, per_page=current_app.config['COOKZILLA_FOLLOWERS_PER_PAGE'],
         error_out=False)
     follows = [{'user': item.follower, 'timestamp': item.timestamp}
                for item in pagination.items]
-    return render_template('followers.html', user=user, title="Followers of",
+    return render_template('users/followers.html', user=user, title="Followers of",
                            endpoint='.followers', pagination=pagination,
                            follows=follows)
 
@@ -162,12 +173,12 @@ def followed_by(username):
         flash('Invalid user.')
         return redirect(url_for('.index'))
     page = request.args.get('page', 1, type=int)
-    pagination = user.followed.paginate(
+    pagination = user.followed.filter(Follow.followed_id != user.id).order_by(Follow.timestamp.desc()).paginate(
         page, per_page=current_app.config['COOKZILLA_FOLLOWERS_PER_PAGE'],
         error_out=False)
     follows = [{'user': item.followed, 'timestamp': item.timestamp}
                for item in pagination.items]
-    return render_template('followers.html', user=user, title="Followed by",
+    return render_template('users/followers.html', user=user, title="Followed by",
                            endpoint='.followed_by', pagination=pagination,
                            follows=follows)
 
@@ -191,7 +202,15 @@ def show_followed():
 @main.route('/search_results/<query>')
 @login_required
 def search_results(query):
-    recipes = Recipe.query.whoosh_search(query, current_app.config['MAX_SEARCH_RESULTS']).all()
+    import time
+    from sqlalchemy import or_
+    start = time.time()
+    recipes = Recipe.query.order_by(Recipe.timestamp.desc()) \
+        .filter(or_(Recipe.title.contains(query), Recipe.body.contains(query))) \
+        .limit(current_app.config["SEARCH_RESULTS"]).all()
+    end = time.time()
+    time = "{:.8f} seconds".format(end - start)
     return render_template('utils/search_results.html',
                            query=query,
-                           recipes=recipes)
+                           recipes=recipes,
+                           time=time)

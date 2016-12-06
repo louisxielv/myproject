@@ -86,8 +86,10 @@ def deploy():
     # fake
     u1 = User(email='nychent@gmail.com', username='chet', password='chet', confirmed=True)
     u2 = User(email='louisxielv@gmail.com', username='louisxielv', password='123', confirmed=True)
+    u3 = User(email='no@name.com', username='noname', password='noname', confirmed=True)
     db.session.add(u1)
     db.session.add(u2)
+    db.session.add(u3)
     db.session.commit()
     User.generate_fake()
     print("user good")

@@ -3,6 +3,7 @@
 {% block title %}Cookzilla - Search Results: {{ query }}{% endblock %}
 
 {% block page_content %}
-    <h1>Search results for "{{ query }}":</h1>
+    <h1>Ten Search results for "{{ query }}" order by time:</h1>
+    <div>Time consumed: {{ time }}</div>
     {% include 'recipes/_recipes.html' %}
 {% endblock %}

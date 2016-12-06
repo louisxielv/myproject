@@ -1,9 +1,10 @@
 from flask import render_template, redirect, url_for, abort, flash, request, current_app, make_response
 from flask_login import login_required, current_user
+from datetime import datetime
 from . import groups
 from .forms import GroupForm
 from .. import db
-from ..models import Group, Role, User, Recipe, Review, GroupMember
+from ..models import Group, Role, User, Recipe, Review, GroupMember, Event
 
 
 @groups.route('/create', methods=['GET', 'POST'])
@@ -29,23 +30,12 @@ def create():
 @login_required
 def group_profile(id):
     group = Group.query.get_or_404(id)
-    # form = ReviewForm()
-    # if form.validate_on_submit():
-    #     review = Review(body=form.body.data,
-    #                     recipe=recipe,
-    #                     author=current_user._get_current_object())
-    #     db.session.add(review)
-    #     flash('Your review has been published.')
-    #     return redirect(url_for('.recipe', id=recipe.id, page=-1))
-    # page = request.args.get('page', 1, type=int)
-    # if page == -1:
-    #     page = (recipe.reviews.count() - 1) // \
-    #            current_app.config['COOKZILLA_COMMENTS_PER_PAGE'] + 1
-    # pagination = recipe.reviews.order_by(Review.timestamp.asc()).paginate(
-    #     page, per_page=current_app.config['COOKZILLA_COMMENTS_PER_PAGE'],
-    #     error_out=False)
-    # reviews = pagination.items
-    return render_template('groups/group.html', group=group)
+    page = request.args.get('page', 1, type=int)
+    pagination = group.events.order_by(Event.timestamp.desc()).paginate(
+        page, per_page=current_app.config['COOKZILLA_POSTS_PER_PAGE'],
+        error_out=False)
+    events = pagination.items
+    return render_template('groups/group.html', group=group, events=events)
 
 
 @groups.route('/<username>')
@@ -56,29 +46,41 @@ def group_list(username):
         flash('Invalid user.')
         return redirect(url_for('.index'))
     page = request.args.get('page', 1, type=int)
-    pagination = user.groups.paginate(
+    pagination = user.groups.order_by(GroupMember.member_since.desc()).paginate(
         page, per_page=current_app.config['COOKZILLA_FOLLOWERS_PER_PAGE'],
         error_out=False)
     groups = [{'user': item.member, 'group': item.group, 'member_since': item.member_since}
               for item in pagination.items]
-    return render_template('groups/group_members.html', user=user,
+    return render_template('groups/my_groups_list.html', user=user,
                            endpoint='.groups', pagination=pagination,
                            groups=groups)
 
 
-# @groups.route('/<username>')
-# @login_required
-# def group_list(username):
-#     user = User.query.filter_by(username=username).first()
-#     if user is None:
-#         flash('Invalid user.')
-#         return redirect(url_for('.index'))
-#     page = request.args.get('page', 1, type=int)
-#     pagination = user.groups.paginate(
-#         page, per_page=current_app.config['COOKZILLA_FOLLOWERS_PER_PAGE'],
-#         error_out=False)
-#     groups = [{'user': item.member, 'group': item.group, 'member_since': item.member_since}
-#               for item in pagination.items]
-#     return render_template('groups/group_members.html', user=user,
-#                            endpoint='.groups', pagination=pagination,
-#                            groups=groups)
+@groups.route('/member/<int:id>')
+@login_required
+def member(id):
+    group = Group.query.filter_by(id=id).first()
+    if group is None:
+        flash('Invalid group.')
+        return redirect(url_for('.index'))
+    if current_user.is_member(group):
+        flash('You are already a member of this group.')
+        return redirect(url_for('groups.group_profile', id=id))
+    current_user.member(group)
+    flash('You are now a member of {}.'.format(group.title))
+    return redirect(url_for('groups.group_profile', id=id))
+
+
+@groups.route('/unmember/<int:id>')
+@login_required
+def unmember(id):
+    group = Group.query.filter_by(id=id).first()
+    if group is None:
+        flash('Invalid group.')
+        return redirect(url_for('.index'))
+    if not current_user.is_member(group):
+        flash('You are not a member of this group.')
+        return redirect(url_for('groups.group_profile', id=id))
+    current_user.unmember(group)
+    flash('You are not a member of {} anymore.'.format(group.title))
+    return redirect(url_for('groups.group_profile', id=id))

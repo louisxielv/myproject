@@ -1,0 +1,19 @@
+<table class="table table-hover followers">
+    <thead>
+    <tr>
+        <th>Member</th>
+        <th>Since</th>
+    </tr>
+    </thead>
+    {% for user in users %}
+        <tr>
+            <td>
+                <a href="{{ url_for('main.user', username = user.member.username) }}">
+                    <img class="img-rounded" src="{{ user.member.gravatar(size=32) }}">
+                    {{ user.member.username }}
+                </a>
+            </td>
+            <td>{{ moment(user.member_since).format('L') }}</td>
+        </tr>
+    {% endfor %}
+</table>

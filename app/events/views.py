@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from . import events
 from .forms import EventForm, ReportForm
 from .. import db
-from ..models import Group, Role, User, Recipe, Review, GroupMember, Event, Report
+from ..models import Group, Role, User, Recipe, Review, GroupMember, Event, Report, RSVP
 
 
 @events.route('/create', methods=['GET', 'POST'])
@@ -20,7 +20,7 @@ def create():
                       location=form.location.data,
                       about_event=form.about_event.data)
         # add creator as member
-        current_user.rsvp(event)
+        current_user.go(event)
         db.session.add(current_user)
         db.session.add(event)
         db.session.commit()
@@ -56,28 +56,56 @@ def event_profile(id):
     if page == -1:
         page = (event.reports.count() - 1) // \
                current_app.config['COOKZILLA_COMMENTS_PER_PAGE'] + 1
-    pagination = event.reports.order_by(Report.timestamp.asc()).paginate(
+    pagination = event.reports.order_by(Report.timestamp.desc()).paginate(
         page, per_page=current_app.config['COOKZILLA_COMMENTS_PER_PAGE'],
         error_out=False)
     reports = pagination.items
     return render_template('events/event.html', event=event, form=form, reports=reports, pagination=pagination)
 
 
-# @groups.route('/<username>')
-# @login_required
-# def group_list(username):
-#     user = User.query.filter_by(username=username).first()
-#     if user is None:
-#         flash('Invalid user.')
-#         return redirect(url_for('.index'))
-#     page = request.args.get('page', 1, type=int)
-#     pagination = user.groups.paginate(
-#         page, per_page=current_app.config['COOKZILLA_FOLLOWERS_PER_PAGE'],
-#         error_out=False)
-#     groups = [{'user': item.member, 'group': item.group, 'member_since': item.member_since}
-#               for item in pagination.items]
-#     return render_template('groups/group_members.html', user=user,
-#                            endpoint='.groups', pagination=pagination,
-#                            groups=groups)
-#
+@events.route('/go/<int:id>')
+@login_required
+def go(id):
+    event = Event.query.filter_by(id=id).first()
+    if event is None:
+        flash('Invalid event.')
+        return redirect(url_for('.index'))
+    if current_user.is_go(event):
+        flash('You are going to this event.')
+        return redirect(url_for('events.event_profile', id=id))
+    current_user.go(event)
+    flash('You have a new event: {}.'.format(event.title))
+    return redirect(url_for('events.event_profile', id=id))
 
+
+@events.route('/ungo/<int:id>')
+@login_required
+def ungo(id):
+    event = Event.query.filter_by(id=id).first()
+    if event is None:
+        flash('Invalid event.')
+        return redirect(url_for('.index'))
+    if current_user.is_not_go(event):
+        flash('You are not going to this event.')
+        return redirect(url_for('events.event_profile', id=id))
+    current_user.ungo(event)
+    flash('You are not attending this event: {}'.format(event.title))
+    return redirect(url_for('events.event_profile', id=id))
+
+
+@events.route('/<username>')
+@login_required
+def event_list(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        flash('Invalid user.')
+        return redirect(url_for('.index'))
+    page = request.args.get('page', 1, type=int)
+    pagination = user.events.order_by(RSVP.timestamp.desc()).paginate(
+        page, per_page=current_app.config['COOKZILLA_FOLLOWERS_PER_PAGE'],
+        error_out=False)
+    events = [{'user': item.member, 'event': item.event, 'timestamp': item.timestamp}
+              for item in pagination.items]
+    return render_template('events/my_events_list.html', user=user,
+                           endpoint='.events', pagination=pagination,
+                           events=events)

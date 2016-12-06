@@ -20,8 +20,9 @@
 {% endblock %}
 
 {% block side_content %}
+    <h1>Author</h1>
     {% with target_user=recipe.author %}
-        {% include "utils/_side_user_info.html" %}
+        {% include "users/_user.html" %}
     {% endwith %}
 {% endblock %}
 

@@ -3,29 +3,43 @@
 {% block title %}Cookzilla - {{ group.title }}{% endblock %}
 
 {% block page_content %}
-    <div class="page-header">
-        <div class="profile-header">
-            <h1>Title: {{ group.title }}</h1>
-            {% if group.about_group %}
-                <p>About this group: {{ group.about_group | safe }}</p>
-            {% endif %}
-            <p>Grouped since: {{ moment(group.grouped_since).format('L') }}.</p>
-            <p>{{ group.events.count() }} Group events.</p>
-            <p>
-                {% if current_user.is_member(group) %}
-                    <a href="{{ url_for('events.create', group_id=group.id) }}" class="btn btn-primary">Create Event</a>
-                    {% else %}
-                    join this group
-                    {% endif %}
-            </p>
-        </div>
-    </div>
 
-{#    event list <h3>recipes by {{ user.username }}</h3>#}
-{#    {% include '_recipes.html' %}#}
-{#    {% if pagination %}#}
-{#        <div class="pagination">#}
-{#            {{ macros.pagination_widget(pagination, '.user', username=user.username) }}#}
-{#        </div>#}
-{#    {% endif %}#}
+    <div class="profile-header">
+        <h1>Title: {{ group.title }}</h1>
+        {% if group.about_group %}
+            <p>About this group: {{ group.about_group | safe }}</p>
+        {% endif %}
+        <p>Grouped since: {{ moment(group.grouped_since).format('L') }}.</p>
+        <p>{{ group.events.count() }} Group events.</p>
+        <p>
+            {% if not current_user.is_member(group) %}
+                <a href="{{ url_for('groups.member', id=group.id) }}" class="btn btn-primary">Join this group</a>
+            {% else %}
+                <a href="{{ url_for('events.create', group_id=group.id) }}" class="btn btn-primary">Create Event</a>
+                <a href="{{ url_for('groups.unmember', id=group.id) }}"
+                   class="btn btn-default">Leave this group</a>
+            {% endif %}
+        </p>
+    </div>
+    <div>
+        {% if current_user.is_member(group) %}
+            {% include 'events/_events.html' %}
+            {% if pagination %}
+                {% include 'utils/_pagination.html' %}
+            {% endif %}
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block side_content %}
+    <h1>Creator</h1>
+    {% with target_user=group.creator %}
+        {% include "users/_user.html" %}
+    {% endwith %}
+    {% if current_user.is_member(group) %}
+        <h1>Member List</h1>
+        {% with users=group.members %}
+            {% include "users/_side_members_list.html" %}
+        {% endwith %}
+    {% endif %}
 {% endblock %}

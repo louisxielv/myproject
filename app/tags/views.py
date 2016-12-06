@@ -8,7 +8,7 @@ from ..models import Tag, Recipe
 def tag(id):
     tag = Tag.query.get_or_404(id)
     page = request.args.get('page', 1, type=int)
-    pagination = tag.recipes.order_by(Recipe.timestamp.asc()).paginate(
+    pagination = tag.recipes.order_by(Recipe.timestamp.desc()).paginate(
         page, per_page=current_app.config['COOKZILLA_COMMENTS_PER_PAGE'],
         error_out=False)
     recipes = pagination.items

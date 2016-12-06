@@ -47,10 +47,11 @@ class Config:
     CLIENT_ID = '5b2af5db85fc9a1'
     CLIENT_SECRET = 'fadb6addc1f2d5f8e09e4bf7dc5780e5071b9de6'
     # search
-    WHOOSHEE_DIR = os.path.join(basedir, 'search.db')
-    WHOSHEE_MIN_STRING_LEN = 3
-    WHOOSHEE_WRITER_TIMEOUT = 2
-    WHOOSHEE_URL = '/search_results'
+    SEARCH_RESULTS = 10
+    # WHOOSHEE_DIR = os.path.join(basedir, 'search.db')
+    # WHOSHEE_MIN_STRING_LEN = 3
+    # WHOOSHEE_WRITER_TIMEOUT = 2
+    # WHOOSHEE_URL = '/search_results'
 
     @staticmethod
     def init_app(app):
