@@ -200,7 +200,6 @@ def show_followed():
 
 
 @main.route('/search_results/<query>')
-@login_required
 def search_results(query):
     import time
     from sqlalchemy import or_
