@@ -18,9 +18,9 @@
 {% block navbar %}
     <div class='header-top'>
         <div class="container">
-            <h2 class="blog-title">
+            <h1 class="blog-title">
                 <li><a href="{{ url_for('main.index') }}">Cookzilla</a></li>
-            </h2>
+            </h1>
             {#            <p class="lead signature">#}
             {#                {{ BlogInfo.query.first().signature }}#}
             {#            </p>#}
@@ -42,6 +42,8 @@
                     {% if current_user.is_authenticated %}
                         <li><a href="{{ url_for('main.user', username=current_user.username) }}">Me</a></li>
                         <li><a href="{{ url_for('groups.group_list', username=current_user.username) }}">My Groups</a>
+                        </li>
+                        <li><a href="{{ url_for('events.event_list', username=current_user.username) }}">My Events</a>
                         </li>
                     {% endif %}
                 </ul>
@@ -90,9 +92,9 @@
 
     <div class="footer">
         <p class="footer-content">
-            @2016
+            Copyright@2016
             <a href="#">Cookzilla</a>
-            <span class="glyphicon glyphicon-heart">By CT and XL</span>
+            <span class="glyphicon glyphicon-heart"> </span>By CT and XL
         </p>
     </div>
 {% endblock %}

@@ -21,6 +21,7 @@ login_manager.login_view = 'auth.login'
 
 
 def create_app(config_name):
+    import flask_whooshalchemy
     app = Flask(__name__)
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
@@ -48,6 +49,12 @@ def create_app(config_name):
 
     from .groups import groups as groups_blueprint
     app.register_blueprint(groups_blueprint, url_prefix='/groups')
+
+    from .events import events as events_blueprint
+    app.register_blueprint(events_blueprint, url_prefix='/events')
+
+    from .tags import tags as tags_blueprint
+    app.register_blueprint(tags_blueprint, url_prefix='/tags')
 
     from .utils import utils as utils_blueprint
     app.register_blueprint(utils_blueprint, url_prefix='/utils')

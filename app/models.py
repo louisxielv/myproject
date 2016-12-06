@@ -296,18 +296,33 @@ class User(UserMixin, db.Model):
         return [e for g in self.groups.all() for e in g.group.events.all() if e.timestamp > datetime.utcnow()]
 
     # rsvp part
-    def rsvp(self, event):
-        if self.is_member(event.group) and not self.is_rsvp(event):
-            r = RSVP(member=self, event=event, status=1)
-            db.session.add(r)
+    def go(self, event):
+        if self.is_go(event) or self.is_not_go(event):
+            r = RSVP.query.filter_by(member=self, event=event).first()
+        else:
+            r = RSVP(member=self, event=event)
+        r.status = 1
+        db.session.add(r)
 
-    def unrsvp(self, event):
-        if self.is_member(event.group) and not self.is_rsvp(event):
-            r = RSVP(member=self, event=event, status=0)
-            db.session.add(r)
+    def ungo(self, event):
+        if self.is_go(event) or self.is_not_go(event):
+            r = RSVP.query.filter_by(member=self, event=event).first()
+        else:
+            r = RSVP(member=self, event=event)
+        r.status = 0
+        db.session.add(r)
 
-    def is_rsvp(self, event):
-        return self.events.filter_by(event_id=event.id).first() is not None
+    def is_go(self, event):
+        e = self.events.filter_by(event_id=event.id).first()
+        return e is not None and e.status == 1
+
+    def is_not_go(self, event):
+        e = self.events.filter_by(event_id=event.id).first()
+        return e is not None and e.status == 0
+
+    @staticmethod
+    def is_available(event):
+        return event.timestamp > datetime.utcnow()
 
     def generate_auth_token(self, expiration):
         s = Serializer(current_app.config['SECRET_KEY'],
@@ -360,6 +375,7 @@ recipe_tags = db.Table('recipe_tags',
 
 class Recipe(db.Model):
     __tablename__ = 'recipes'
+    __searchable__ = ['title', 'body', 'ingredients']
     id = db.Column(db.Integer, primary_key=True)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     photos = db.Column(db.String(LENGTH * 2), default="")
@@ -633,7 +649,7 @@ class Event(db.Model):
                       about_event=forgery_py.lorem_ipsum.sentences(randint(1, 10)))
 
             # creator as member
-            u.rsvp(e)
+            u.is_go(e)
 
             db.session.add(u)
             db.session.add(g)

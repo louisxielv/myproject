@@ -1,32 +1,39 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
-{% import "utils/_macros.html" as macros %}
 
 {% block title %}Cookzilla{% endblock %}
 
 {% block page_content %}
     <div class="page-header">
-        <h1>Hello, {% if current_user.is_authenticated %}{{ current_user.username }}{% else %}Stranger{% endif %}!</h1>
+        <h1>Hello, {% if current_user.is_authenticated %}{{ current_user.username }}{% else %}There{% endif %}.</h1>
     </div>
-{#    <div>#}
-{#        {% if current_user.can(Permission.WRITE_ARTICLES) %}#}
-{#            {{ wtf.quick_form(form) }}#}
-{#        {% endif %}#}
-{#    </div>#}
     <div class="recipe-tabs">
         <ul class="nav nav-tabs">
             <li{% if not show_followed %} class="active"{% endif %}><a href="{{ url_for('.show_all') }}">All</a></li>
             {% if current_user.is_authenticated %}
                 <li{% if show_followed %} class="active"{% endif %}><a
-                        href="{{ url_for('.show_followed') }}">Followers</a></li>
+                        href="{{ url_for('.show_followed') }}">For me</a></li>
             {% endif %}
         </ul>
         {% include 'recipes/_recipes.html' %}
     </div>
     {% if pagination %}
-        <div class="pagination">
-            {{ macros.pagination_widget(pagination, '.index') }}
-        </div>
+        {% include 'utils/_pagination.html' %}
+    {% endif %}
+{% endblock %}
+
+{% block side_content %}
+    {% if current_user.is_authenticated %}
+        <div>Tag</div>
+        {% include "tags/_tags.html" %}
+        {% include "utils/search.html" %}
+    {% else %}
+        <p>This Chen and Lyu.
+            <br>
+            Welcome to Cookzilla, where you can share recipes, find good foods, meet eaters, and have fun!
+            <br>
+            So, <a href="{{ url_for("auth.register") }}">SIGN UP</a> and access to millions of recipes.
+        </p>
     {% endif %}
 {% endblock %}
 

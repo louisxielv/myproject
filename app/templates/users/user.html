@@ -28,10 +28,6 @@
                            class="btn btn-default">Unfollow</a>
                     {% endif %}
                 {% endif %}
-                <a href="{{ url_for('.followers', username=user.username) }}">Followers: <span
-                        class="badge">{{ user.followers.count() - 1 }}</span></a>
-                <a href="{{ url_for('.followed_by', username=user.username) }}">Following: <span
-                        class="badge">{{ user.followed.count() - 1 }}</span></a>
                 {% if current_user.is_authenticated and user != current_user and user.is_following(current_user) %}
                     | <span class="label label-default">Follows you</span>
                 {% endif %}
@@ -52,4 +48,32 @@
     <h3>recipes by {{ user.username }}</h3>
     {% include 'recipes/_recipes.html' %}
     {% include 'utils/_pagination.html' %}
+{% endblock %}
+
+{% block side_content %}
+    <div>
+        <h1>Following List</h1>
+        {% with follows=followeds, pagination=None %}
+            {% include "users/_followers.html" %}
+        {% endwith %}
+        <a href="{{ url_for('.followed_by', username=user.username) }}">See more: Following: <span
+                class="badge">{{ user.followed.count() - 1 }}</span></a>
+
+    </div>
+    <div>
+        <h1>Followed List</h1>
+        {% with follows=followers, pagination=None %}
+            {% include "users/_followers.html" %}
+        {% endwith %}
+        <a href="{{ url_for('.followers', username=user.username) }}">See more. Followers:
+            <span class="badge">{{ user.followers.count() - 1 }}</span></a>
+    </div>
+    <div>
+        <h1>{{ user.username }}'s groups</h1>
+        {% with groups=user.groups, pagination=None %}
+            {% include "groups/_groups.html" %}
+        {% endwith %}
+        <a href="{{ url_for('groups.group_list', username=user.username) }}">See more. Groups:
+            <span class="badge">{{ user.groups.count() }}</span></a>
+    </div>
 {% endblock %}

@@ -1,20 +1,21 @@
-<ul class="groups">
+<table class="table table-hover followers">
+    <thead>
+    <tr>
+        <th>Group</th>
+        <th>Since</th>
+    </tr>
+    </thead>
     {% for group in groups %}
-        <li class="group">
-            <div class="group-thumbnail">
-                <a href="{{ url_for('.user', username=recipe.author.username) }}">Link</a>
-            </div>
-            <div class="group-content">
-                {#            <div class="group-date">#}
-                {#                {{ moment(group.timestamp).fromNow() }}#}
-                {#            </div>#}
-                {#            <div class="recipe-author">#}
-                {#                <a href="{{ url_for('.user', username=recipe.author.username) }}">{{ recipe.author.username }}</a>#}
-                {#            </div>#}
-                <div class="recipe-body">
-                    {{ group.title }}
-                </div>
-            </div>
-        </li>
+        <tr>
+            <td>
+                <a href="{{ url_for('groups.group_profile', id=group.group.id) }}">
+                    {{ group.group.title }}
+                </a>
+            </td>
+            <td>{{ moment(group.member_since).format('L') }}</td>
+        </tr>
     {% endfor %}
-</ul>
+</table>
+{% if pagination %}
+    {% include "utils/_pagination.html" %}
+{% endif %}

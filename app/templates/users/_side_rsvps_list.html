@@ -1,0 +1,24 @@
+<table class="table table-hover followers">
+    <thead>
+    <tr>
+        <th>Member</th>
+        <th>RSVP</th>
+    </tr>
+    </thead>
+    {% for user in users %}
+        <tr>
+            <td>
+                <a href="{{ url_for('main.user', username = user.member.username) }}">
+                    <img class="img-rounded" src="{{ user.member.gravatar(size=32) }}">
+                    {{ user.member.username }}
+                </a>
+            </td>
+            <td>{% if user.member.is_go %}
+                Go
+                {% elif user.member.is_not_go %}
+                Not Go
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+</table>

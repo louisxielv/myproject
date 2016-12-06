@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 
+{% block stylesheet %}
+    {{ super() }}
+    <link rel="stylesheet" type="text/css"
+          href="{{ url_for('static', filename='tinymce/js/tinymce/plugins/codesample/css/prism.css') }}">
+{% endblock %}
+
 {% block title %}Cookzilla - Recipe{% endblock %}
 
 {% block page_content %}
@@ -14,8 +20,9 @@
 {% endblock %}
 
 {% block side_content %}
+    <h1>Author</h1>
     {% with target_user=recipe.author %}
-        {% include "utils/_side_user_info.html" %}
+        {% include "users/_user.html" %}
     {% endwith %}
 {% endblock %}
 

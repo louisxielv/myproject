@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block stylesheet %}
+    {{ super() }}
+    <link rel="stylesheet" type="text/css"
+          href="{{ url_for('static', filename='tinymce/js/tinymce/plugins/codesample/css/prism.css') }}">
+{% endblock %}
+
+{% block title %}Cookzilla - Event{% endblock %}
+
+{% block page_content %}
+    {% include 'events/_event.html' %}
+    <h4 id="rsvp"> RSVP </h4>
+    <p>
+        {% if current_user.is_available(event) %}
+            <a href="{{ url_for('events.go', id=event.id) }}" class="btn btn-primary">Go</a>
+            <a href="{{ url_for('events.ungo', id=event.id) }}" class="btn btn-default">Not Go</a>
+        {% else %}
+            This event has passed.
+        {% endif %}
+    </p>
+
+    <h4 id="reports">Reports</h4>
+    {% if reports %}
+        {% include 'reports/_reports.html' %}
+        {% include 'utils/_pagination.html' %}
+    {% endif %}
+    {% include "reports/create.html" %}
+{% endblock %}
+
+{% block side_content %}
+    <h1>Creator</h1>
+    {% with target_user=event.creator %}
+        {% include "/users/_user.html" %}
+    {% endwith %}
+    <h1>Who will go</h1>
+    {% with users=event.rsvps.filter_by(status=1) %}
+        {% include "users/_side_rsvps_list.html" %}
+    {% endwith %}
+    <h1>Who will not go</h1>
+    {% with users=event.rsvps.filter_by(status=0) %}
+        {% include "users/_side_rsvps_list.html" %}
+    {% endwith %}
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='ckeditor/ckeditor.js') }}"></script>
+{% endblock %}
+

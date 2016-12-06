@@ -1,10 +1,11 @@
 from flask import render_template, redirect, url_for, abort, flash, request, current_app
 from flask_login import login_required, current_user
 
-from app.recipes.forms import RecipeForm, ReviewForm
+from app.recipes.forms import RecipeForm
 from . import recipes
 from .. import db
-from ..models import Permission, Recipe, Review, Ingredient, Tag
+from .forms import ReviewForm
+from ..models import Permission, Recipe, Review, Ingredient, Tag, User
 from ..utils.Imgur import Imgur
 from ..utils.tools import gen_rnd_filename
 from werkzeug.utils import secure_filename
@@ -120,7 +121,7 @@ def recipe(id):
     if page == -1:
         page = (recipe.reviews.count() - 1) // \
                current_app.config['COOKZILLA_COMMENTS_PER_PAGE'] + 1
-    pagination = recipe.reviews.order_by(Review.timestamp.asc()).paginate(
+    pagination = recipe.reviews.order_by(Review.timestamp.desc()).paginate(
         page, per_page=current_app.config['COOKZILLA_COMMENTS_PER_PAGE'],
         error_out=False)
     reviews = pagination.items
@@ -142,3 +143,21 @@ def edit(id):
         return redirect(url_for('.recipe', id=recipe.id))
     form.body.data = recipe.body
     return render_template('recipes/edit_recipe.html', form=form)
+
+
+@recipes.route('/<username>')
+@login_required
+def recipe_list(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        flash('Invalid user.')
+        return redirect(url_for('.index'))
+    page = request.args.get('page', 1, type=int)
+    pagination = user.recipes.order_by(Recipe.timestamp.desc()).paginate(
+        page, per_page=current_app.config['COOKZILLA_FOLLOWERS_PER_PAGE'],
+        error_out=False)
+    recipes = [{'user': item.member, 'recipe': item.recipe, 'timestamp': item.timestamp}
+              for item in pagination.items]
+    return render_template('recipes/recipe.html', user=user,
+                           endpoint='.recipes', pagination=pagination,
+                           recipes=recipes)

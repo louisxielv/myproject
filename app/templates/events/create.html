@@ -7,11 +7,11 @@
           href="{{ url_for('static', filename='tinymce/js/tinymce/plugins/codesample/css/prism.css') }}">
 {% endblock %}
 
-{% block title %}Cookzilla - Create Your Group{% endblock %}
+{% block title %}Cookzilla - Create My Event{% endblock %}
 
 {% block page_content %}
     <div class="entry-box create">
-        <h1><Strong>Create your Group</Strong></h1>
+        <h1><Strong>Create My Event</Strong></h1>
         <hr/>
         <form class="create" method="post" action="" enctype="multipart/form-data">
             {{ form.csrf_token }}
@@ -22,16 +22,27 @@
                 {{ form.title(class="create-title") }}
             </div>
             <div class="form-group">
-                {{ form.about_group.label() }}
-                {{ form.about_group(class="ckeditor") }}
+                {{ form.timestamp.label(class="control-label") }}
+                {{ form.timestamp(class="datepicker") }}
             </div>
+            <div class="form-group">
+                {{ form.location.label(class="control-label") }}
+                {{ form.location(class="create-location") }}
+            </div>
+
+            <div class="form-group">
+                {{ form.about_event.label() }}
+                {{ form.about_event(class="ckeditor") }}
+            </div>
+            <div class="form-group">
                 {{ form.submit() }}
+            </div>
         </form>
     </div>
 {% endblock %}
 
 {% block side_content %}
-    Create your own group and team up
+    Create your own event and team up
 {% endblock %}
 
 {% block scripts %}

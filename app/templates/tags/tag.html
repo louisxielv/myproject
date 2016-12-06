@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Cookzilla - Recipe{% endblock %}
+
+{% block page_content %}
+    <div>
+        <h4><Strong>Tag</Strong></h4>
+    </div>
+    {% include 'recipes/_recipes.html' %}
+    {% if pagination %}
+        {% include 'utils/_pagination.html' %}
+    {% endif %}
+{% endblock %}
+
+{% block side_content %}
+    <div>Tag</div>
+    {% include "tags/_tags.html" %}
+{% endblock %}

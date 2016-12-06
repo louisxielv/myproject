@@ -1,6 +1,5 @@
 <div class="user-name">
-    Who: <a
-        href="{{ url_for('main.user', username=target_user.username) }}">{{ target_user.username }}</a>
+    <a href="{{ url_for('main.user', username=target_user.username) }}">{{ target_user.username }}</a>
 </div>
 <div class="user-thumbnail">
     <a href="{{ url_for('main.user', username=target_user.username) }}">
