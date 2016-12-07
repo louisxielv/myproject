@@ -6,7 +6,7 @@ from . import main
 from .forms import EditProfileForm, EditProfileAdminForm, SearchForm
 from .. import db
 from ..decorators import admin_required, permission_required
-from ..models import Permission, Role, User, Recipe, Tag, Follow
+from ..models import Permission, Role, User, Recipe, Tag, Follow, LogEvent
 
 
 @main.after_app_request
@@ -213,3 +213,16 @@ def search_results(query):
                            query=query,
                            recipes=recipes,
                            time=time)
+
+
+@main.route('/logs')
+@admin_required
+def log():
+    page = request.args.get('page', 1, type=int)
+    pagination = LogEvent.query.order_by(LogEvent.logged_at.desc()).paginate(
+        page, per_page=current_app.config['COOKZILLA_FOLLOWERS_PER_PAGE'],
+        error_out=False)
+    logs = [{'user': item.user, "op": item.op, 'value': item.value, 'logged_at': item.logged_at}
+            for item in pagination.items]
+    return render_template('logs/logs.html', endpoint='main.log', pagination=pagination,
+                           logs=logs)

@@ -46,7 +46,7 @@
                         <li><a href="{{ url_for('events.event_list', username=current_user.username) }}">My Events</a>
                         </li>
                         {% if current_user.is_administrator() %}
-                            <li><a href="{{ url_for('events.event_list', username=current_user.username) }}">My
+                            <li><a href="{{ url_for('main.log') }}">My
                                 Logs</a>
                             </li>
                         {% endif %}

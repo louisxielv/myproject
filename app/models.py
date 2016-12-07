@@ -58,17 +58,26 @@ class LogEvent(db.Model):
     __tablename__ = 'log_events'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    value = db.Column(db.String(64), unique=True)
+    op = db.Column(db.String(64))
+    value = db.Column(db.String(64))
+    ct = db.Column(db.INTEGER)
     logged_at = db.Column(db.DateTime(), default=datetime.utcnow)
 
     @staticmethod
-    def log(user, value):
-        log = LogEvent(user=user, value=value)
+    def log(user, op, value):
+        """
+
+        :param user:
+        :param recipe:
+        :param op:
+        :return:
+        """
+        log = LogEvent(user=user, op=op, value=value)
         db.session.add(log)
         db.session.commit()
 
     def __repr__(self):
-        return '<LogEvent {}, {}>'.format(self.user.username, self.value)
+        return '<LogEvent {}, {}, {}>'.format(self.user.username, self.op, self.value)
 
 
 class Follow(db.Model):
@@ -493,7 +502,7 @@ class Ingredient(db.Model):
 class Tag(db.Model):
     __tablename__ = 'tags'
     id = db.Column(db.Integer, primary_key=True)
-    tag = db.Column(db.String(LENGTH))
+    tag = db.Column(db.String(LENGTH), unique=True)
 
     @staticmethod
     def insert_tags():

@@ -30,7 +30,8 @@ def make_shell_context():
     return dict(app=app, db=db, User=User, Follow=Follow, Role=Role,
                 Permission=Permission, Recipe=Recipe, Review=Review,
                 Group=Group, GroupMember=GroupMember, Ingredient=Ingredient,
-                Tag=Tag, Event=Event, Report=Report, RSVP=RSVP, LogEvent=LogEvent)
+                Tag=Tag, Event=Event, Report=Report, RSVP=RSVP,
+                LogEvent=LogEvent)
 
 
 manager.add_command("shell", Shell(make_context=make_shell_context))
