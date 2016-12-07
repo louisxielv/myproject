@@ -15,5 +15,6 @@ def tag(id):
     recipes = pagination.items
     tags = Tag.query.all()
     # log
-    LogEvent.log(current_user, "tag", str(tag.id))
+    for r in recipes:
+        LogEvent.log(current_user, tag.tag, r)
     return render_template('tags/tag.html', recipes=recipes, pagination=pagination, tags=tags)

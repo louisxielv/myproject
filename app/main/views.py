@@ -39,11 +39,16 @@ def index():
         show_followed = bool(request.cookies.get('show_followed', ''))
     if show_followed:
         query1 = current_user.query_logs
-        query = current_user.followed_recipes #.union(query1)
-
+        query2 = current_user.followed_recipes
+        if query1:
+            query = query1.union(query2).order_by(LogEvent.ct.desc()).order_by(Recipe.timestamp.desc())
+        else:
+            query = query2
+        query = query.with_entities(Recipe).distinct()
     else:
-        query = Recipe.query
-    pagination = query.order_by(Recipe.timestamp.desc()).paginate(
+        query = Recipe.query.order_by(Recipe.timestamp.desc())
+
+    pagination = query.paginate(
         page, per_page=current_app.config['COOKZILLA_POSTS_PER_PAGE'],
         error_out=False)
     recipes = pagination.items
@@ -212,7 +217,8 @@ def search_results(query):
     end = time.time()
     time = "{:.8f} seconds".format(end - start)
     # log
-    LogEvent.log(current_user, "search", str(query))
+    for r in recipes:
+        LogEvent.log(current_user, query, r)
     return render_template('utils/search_results.html',
                            query=query,
                            recipes=recipes,
@@ -226,7 +232,9 @@ def log():
     pagination = LogEvent.query.order_by(LogEvent.logged_at.desc()).paginate(
         page, per_page=current_app.config['COOKZILLA_FOLLOWERS_PER_PAGE'],
         error_out=False)
-    logs = [{'user': item.user, "op": item.op, 'value': item.value, "ct": item.ct, 'logged_at': item.logged_at}
+    logs = [{'user': item.user, "op": item.op, 'recipe': item.recipe, "ct": item.ct, 'logged_at': item.logged_at}
             for item in pagination.items]
     return render_template('logs/logs.html', endpoint='main.log', pagination=pagination,
                            logs=logs)
+
+

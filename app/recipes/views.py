@@ -121,7 +121,7 @@ def recipe(id):
         error_out=False)
     reviews = pagination.items
     # log
-    LogEvent.log(current_user, "browse", str(recipe.id))
+    LogEvent.log(current_user, "browse", recipe)
 
     return render_template('recipes/recipe.html', recipe=recipe, form=form,
                            reviews=reviews, pagination=pagination)

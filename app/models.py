@@ -1,9 +1,11 @@
 import hashlib
 from datetime import datetime
 
+import sqlalchemy as sa
 from flask import current_app, request
 from flask_login import UserMixin, AnonymousUserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from sqlalchemy import func
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from . import db, login_manager
@@ -85,7 +87,7 @@ class LogEvent(db.Model):
         db.session.commit()
 
     def __repr__(self):
-        return '<LogEvent {}, {}, {}>'.format(self.user.username, self.op, self.value)
+        return '<LogEvent {}, {}, {}>'.format(self.user.username, self.op, self.recipe.title)
 
 
 class Follow(db.Model):
@@ -161,13 +163,11 @@ class User(UserMixin, db.Model):
     #                          lazy='dynamic')
     @property
     def query_logs(self):
-        pass
-        # return self.logs.query.filter_by(op="browse").join().with_entities(Recipe.id,
-        #                                                  Recipe.author,
-        #                                                  Recipe.title,
-        #                                                  Recipe.photos,
-        #                                                  Recipe.timestamp,
-        #                                                  Recipe.reviews)
+        return self.logs.group_by(LogEvent.recipe_id).add_columns(func.count(LogEvent.ct)).with_entities(
+            LogEvent.recipe_id, sa.func.count(LogEvent.ct).label('ct')).join(Recipe,
+                                                                             LogEvent.recipe_id == Recipe.id).with_entities(
+            Recipe, LogEvent.ct, Recipe.timestamp)
+
     @staticmethod
     def generate_fake(count=100):
         from sqlalchemy.exc import IntegrityError
@@ -314,14 +314,10 @@ class User(UserMixin, db.Model):
 
     @property
     def followed_recipes(self):
-        return Recipe.query.join(Follow,
-                                 Follow.followed_id == Recipe.author_id).filter(
-            Follow.follower_id == self.id).with_entities(Recipe.id,
-                                                         Recipe.author,
-                                                         Recipe.title,
-                                                         Recipe.photos,
-                                                         Recipe.timestamp,
-                                                         Recipe.reviews)
+        return Recipe.query.join(Follow, Follow.followed_id == Recipe.author_id).filter(
+            Follow.follower_id == self.id).with_entities(Recipe,
+                                                         sa.sql.expression.literal_column("1", sa.types.Integer).label("ct"),
+                                                         Recipe.timestamp)
 
     # membership part
     def member(self, group):
