@@ -222,7 +222,7 @@ def log():
     pagination = LogEvent.query.order_by(LogEvent.logged_at.desc()).paginate(
         page, per_page=current_app.config['COOKZILLA_FOLLOWERS_PER_PAGE'],
         error_out=False)
-    logs = [{'user': item.user, "op": item.op, 'value': item.value, 'logged_at': item.logged_at}
+    logs = [{'user': item.user, "op": item.op, 'value': item.value, "ct": item.ct, 'logged_at': item.logged_at}
             for item in pagination.items]
     return render_template('logs/logs.html', endpoint='main.log', pagination=pagination,
                            logs=logs)

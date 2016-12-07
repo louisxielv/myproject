@@ -12,6 +12,7 @@
             <th>User</th>
             <th>Ops</th>
             <th>Value</th>
+            <th>Count</th>
             <th>Time</th>
         </tr>
         </thead>
@@ -25,6 +26,7 @@
                 </td>
                 <td>{{ log.op }}</td>
                 <td>{{ log.value }}</td>
+                <td>{{ log.ct }}</td>
                 <td>{{ moment(log.logged_at).format('L') }}</td>
             </tr>
         {% endfor %}

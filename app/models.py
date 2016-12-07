@@ -72,7 +72,13 @@ class LogEvent(db.Model):
         :param op:
         :return:
         """
-        log = LogEvent(user=user, op=op, value=value)
+        log = LogEvent.query.filter_by(user=user, op=op, value=value).first()
+        if log:
+            log.ct += 1
+            log.logged_at = datetime.utcnow()
+        else:
+            log = LogEvent(user=user, op=op, value=value, ct=1)
+
         db.session.add(log)
         db.session.commit()
 
