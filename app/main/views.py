@@ -209,6 +209,8 @@ def search_results(query):
         .limit(current_app.config["SEARCH_RESULTS"]).all()
     end = time.time()
     time = "{:.8f} seconds".format(end - start)
+    # log
+    LogEvent.log(current_user, "search", str(query))
     return render_template('utils/search_results.html',
                            query=query,
                            recipes=recipes,
