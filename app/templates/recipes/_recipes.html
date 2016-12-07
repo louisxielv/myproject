@@ -26,13 +26,9 @@
                         <a href="{{ url_for('recipes.edit', id=recipe.id) }}">
                             <span class="label label-primary">Edit</span>
                         </a>
-                    {% elif current_user.is_administrator() %}
-                        <a href="{{ url_for('recipes.edit', id=recipe.id) }}">
-                            <span class="label label-danger">Edit [Admin]</span>
-                        </a>
                     {% endif %}
                     <a href="{{ url_for('recipes.recipe', id=recipe.id) }}">
-                        <span class="label label-default">Permalink</span>
+                        <span class="label label-default">See Detail</span>
                     </a>
                     <a href="{{ url_for('recipes.recipe', id=recipe.id) }}#reviews">
                         <span class="label label-primary">{{ recipe.reviews.count() }} Reviews</span>

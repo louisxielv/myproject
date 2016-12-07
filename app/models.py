@@ -59,12 +59,12 @@ class LogEvent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     op = db.Column(db.String(64))
-    value = db.Column(db.String(64))
+    recipe_id = db.Column(db.INTEGER, db.ForeignKey("recipes.id"))
     ct = db.Column(db.INTEGER)
     logged_at = db.Column(db.DateTime(), default=datetime.utcnow)
 
     @staticmethod
-    def log(user, op, value):
+    def log(user, op, recipe):
         """
 
         :param user:
@@ -72,12 +72,14 @@ class LogEvent(db.Model):
         :param op:
         :return:
         """
-        log = LogEvent.query.filter_by(user=user, op=op, value=value).first()
+        if not user.can(Permission.WRITE_ARTICLES):
+            return
+        log = LogEvent.query.filter_by(user=user, op=op, recipe=recipe).first()
         if log:
             log.ct += 1
             log.logged_at = datetime.utcnow()
         else:
-            log = LogEvent(user=user, op=op, value=value, ct=1)
+            log = LogEvent(user=user, op=op, recipe=recipe, ct=1)
 
         db.session.add(log)
         db.session.commit()
@@ -157,7 +159,15 @@ class User(UserMixin, db.Model):
     #                          secondary='group_member',  # association table
     #                          backref=db.backref('members', lazy='dynamic'),  # User.groups and Group.members
     #                          lazy='dynamic')
-
+    @property
+    def query_logs(self):
+        pass
+        # return self.logs.query.filter_by(op="browse").join().with_entities(Recipe.id,
+        #                                                  Recipe.author,
+        #                                                  Recipe.title,
+        #                                                  Recipe.photos,
+        #                                                  Recipe.timestamp,
+        #                                                  Recipe.reviews)
     @staticmethod
     def generate_fake(count=100):
         from sqlalchemy.exc import IntegrityError
@@ -305,7 +315,13 @@ class User(UserMixin, db.Model):
     @property
     def followed_recipes(self):
         return Recipe.query.join(Follow,
-                                 Follow.followed_id == Recipe.author_id).filter(Follow.follower_id == self.id)
+                                 Follow.followed_id == Recipe.author_id).filter(
+            Follow.follower_id == self.id).with_entities(Recipe.id,
+                                                         Recipe.author,
+                                                         Recipe.title,
+                                                         Recipe.photos,
+                                                         Recipe.timestamp,
+                                                         Recipe.reviews)
 
     # membership part
     def member(self, group):
@@ -427,6 +443,7 @@ class Recipe(db.Model):
                            secondary='recipe_tags',
                            backref=db.backref('recipes', lazy='dynamic'),  # Recipe.tags and Tag.recipes
                            lazy='dynamic')
+    logs = db.relationship('LogEvent', backref='recipe', lazy='dynamic')
 
     @staticmethod
     def generate_fake(count=500):

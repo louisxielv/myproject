@@ -32,8 +32,8 @@ class RecipeForm(FlaskForm):
     serving = SelectField('The Number of Serving', coerce=int, validators=[Optional()])
     body = TextAreaField("Tell us how to make it?", validators=[Optional()])
     # ingredients
-    ingredients = FieldList(FormField(IngredientForm), min_entries=1)
-    ingredients_optical = FieldList(FormField(IngredientForm), min_entries=4)
+    ingredients = FieldList(FormField(IngredientForm, label="must"), min_entries=1)
+    ingredients_optical = FieldList(FormField(IngredientForm, label=""), min_entries=4)
 
     # links
     links = FieldList(FormField(LinkForm), min_entries=2)

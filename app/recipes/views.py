@@ -1,20 +1,15 @@
+import os
+
 from flask import render_template, redirect, url_for, abort, flash, request, current_app
 from flask_login import login_required, current_user
+from werkzeug.utils import secure_filename
 
 from app.recipes.forms import RecipeForm
 from . import recipes
-from .. import db
 from .forms import ReviewForm
+from .. import db
 from ..models import Permission, Recipe, Review, Ingredient, Tag, User, LogEvent
-from ..utils.Imgur import Imgur
 from ..utils.tools import gen_rnd_filename
-from werkzeug.utils import secure_filename
-
-imgur_handler = Imgur()
-
-import os
-import datetime
-import random
 
 
 @recipes.route('/create', methods=['GET', 'POST'])
@@ -97,7 +92,7 @@ def create():
         return redirect(url_for('.recipe', id=recipe.id))
 
     if recipe_form.errors:
-        tmp = [str(k)+" "+str(v[0]) for k, v in recipe_form.errors.items()]
+        tmp = [str(k) + " " + str(v[0]) for k, v in recipe_form.errors.items()]
         flash("\n".join(tmp))
 
     return render_template('recipes/create.html', recipe_form=recipe_form)
@@ -160,7 +155,7 @@ def recipe_list(username):
         page, per_page=current_app.config['COOKZILLA_FOLLOWERS_PER_PAGE'],
         error_out=False)
     recipes = [{'user': item.member, 'recipe': item.recipe, 'timestamp': item.timestamp}
-              for item in pagination.items]
+               for item in pagination.items]
     return render_template('recipes/recipe.html', user=user,
                            endpoint='.recipes', pagination=pagination,
                            recipes=recipes)

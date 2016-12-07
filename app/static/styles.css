@@ -30,6 +30,7 @@ div.recipe-date {
 }
 div.recipe-author {
     font-weight: bold;
+    font-size: 20px;
 }
 div.recipe-thumbnail {
     position: absolute;

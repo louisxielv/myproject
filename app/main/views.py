@@ -38,7 +38,9 @@ def index():
     if current_user.is_authenticated:
         show_followed = bool(request.cookies.get('show_followed', ''))
     if show_followed:
-        query = current_user.followed_recipes
+        query1 = current_user.query_logs
+        query = current_user.followed_recipes #.union(query1)
+
     else:
         query = Recipe.query
     pagination = query.order_by(Recipe.timestamp.desc()).paginate(
