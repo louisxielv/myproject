@@ -1,7 +1,8 @@
 from flask import render_template, request, current_app
+from flask_login import current_user
 
 from . import tags
-from ..models import Tag, Recipe
+from ..models import Tag, Recipe, LogEvent
 
 
 @tags.route('/<int:id>', methods=['GET', 'POST'])
@@ -13,4 +14,6 @@ def tag(id):
         error_out=False)
     recipes = pagination.items
     tags = Tag.query.all()
+    # log
+    LogEvent.log(current_user, "tag", str(tag.id))
     return render_template('tags/tag.html', recipes=recipes, pagination=pagination, tags=tags)
