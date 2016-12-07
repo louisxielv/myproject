@@ -5,7 +5,7 @@ from app.recipes.forms import RecipeForm
 from . import recipes
 from .. import db
 from .forms import ReviewForm
-from ..models import Permission, Recipe, Review, Ingredient, Tag, User
+from ..models import Permission, Recipe, Review, Ingredient, Tag, User, LogEvent
 from ..utils.Imgur import Imgur
 from ..utils.tools import gen_rnd_filename
 from werkzeug.utils import secure_filename
@@ -125,6 +125,9 @@ def recipe(id):
         page, per_page=current_app.config['COOKZILLA_COMMENTS_PER_PAGE'],
         error_out=False)
     reviews = pagination.items
+    # log
+    LogEvent.log(current_user, "browse", str(recipe.id))
+
     return render_template('recipes/recipe.html', recipe=recipe, form=form,
                            reviews=reviews, pagination=pagination)
 

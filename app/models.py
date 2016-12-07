@@ -54,6 +54,38 @@ class Role(db.Model):
         return '<Role {!r}, Name: {!r}>'.format(self.id, self.name)
 
 
+class LogEvent(db.Model):
+    __tablename__ = 'log_events'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    op = db.Column(db.String(64))
+    value = db.Column(db.String(64))
+    ct = db.Column(db.INTEGER)
+    logged_at = db.Column(db.DateTime(), default=datetime.utcnow)
+
+    @staticmethod
+    def log(user, op, value):
+        """
+
+        :param user:
+        :param recipe:
+        :param op:
+        :return:
+        """
+        log = LogEvent.query.filter_by(user=user, op=op, value=value).first()
+        if log:
+            log.ct += 1
+            log.logged_at = datetime.utcnow()
+        else:
+            log = LogEvent(user=user, op=op, value=value, ct=1)
+
+        db.session.add(log)
+        db.session.commit()
+
+    def __repr__(self):
+        return '<LogEvent {}, {}, {}>'.format(self.user.username, self.op, self.value)
+
+
 class Follow(db.Model):
     __tablename__ = 'follows'
     follower_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
@@ -119,6 +151,7 @@ class User(UserMixin, db.Model):
                              lazy='dynamic',
                              cascade='all, delete-orphan')
     reports = db.relationship('Report', backref='author', lazy='dynamic')
+    logs = db.relationship('LogEvent', backref='user', lazy='dynamic')
 
     # groups = db.relationship('Group',   # table name
     #                          secondary='group_member',  # association table
@@ -375,7 +408,6 @@ recipe_tags = db.Table('recipe_tags',
 
 class Recipe(db.Model):
     __tablename__ = 'recipes'
-    __searchable__ = ['title', 'body', 'ingredients']
     id = db.Column(db.Integer, primary_key=True)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     photos = db.Column(db.String(LENGTH * 2), default="")
@@ -476,7 +508,7 @@ class Ingredient(db.Model):
 class Tag(db.Model):
     __tablename__ = 'tags'
     id = db.Column(db.Integer, primary_key=True)
-    tag = db.Column(db.String(LENGTH))
+    tag = db.Column(db.String(LENGTH), unique=True)
 
     @staticmethod
     def insert_tags():
