@@ -54,6 +54,23 @@ class Role(db.Model):
         return '<Role {!r}, Name: {!r}>'.format(self.id, self.name)
 
 
+class LogEvent(db.Model):
+    __tablename__ = 'log_events'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    value = db.Column(db.String(64), unique=True)
+    logged_at = db.Column(db.DateTime(), default=datetime.utcnow)
+
+    @staticmethod
+    def log(user, value):
+        log = LogEvent(user=user, value=value)
+        db.session.add(log)
+        db.session.commit()
+
+    def __repr__(self):
+        return '<LogEvent {}, {}>'.format(self.user.username, self.value)
+
+
 class Follow(db.Model):
     __tablename__ = 'follows'
     follower_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
@@ -119,6 +136,7 @@ class User(UserMixin, db.Model):
                              lazy='dynamic',
                              cascade='all, delete-orphan')
     reports = db.relationship('Report', backref='author', lazy='dynamic')
+    logs = db.relationship('LogEvent', backref='user', lazy='dynamic')
 
     # groups = db.relationship('Group',   # table name
     #                          secondary='group_member',  # association table

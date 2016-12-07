@@ -17,7 +17,7 @@ if os.path.exists('.env'):
 
 from app import create_app, db
 from app.models import User, Follow, Role, Permission, Recipe, Review, Group, GroupMember, Ingredient, Tag, Event, \
-    Report, RSVP
+    Report, RSVP, LogEvent
 from flask_script import Manager, Shell
 from flask_migrate import Migrate, MigrateCommand
 
@@ -30,7 +30,7 @@ def make_shell_context():
     return dict(app=app, db=db, User=User, Follow=Follow, Role=Role,
                 Permission=Permission, Recipe=Recipe, Review=Review,
                 Group=Group, GroupMember=GroupMember, Ingredient=Ingredient,
-                Tag=Tag, Event=Event, Report=Report, RSVP=RSVP)
+                Tag=Tag, Event=Event, Report=Report, RSVP=RSVP, LogEvent=LogEvent)
 
 
 manager.add_command("shell", Shell(make_context=make_shell_context))

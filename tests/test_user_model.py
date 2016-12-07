@@ -3,7 +3,7 @@ import unittest
 from datetime import datetime
 
 from app import create_app, db
-from app.models import User, AnonymousUser, Role, Permission, Follow, Group, Event, Report
+from app.models import User, AnonymousUser, Role, Permission, Follow, Group, Event, Report, LogEvent
 
 
 class UserModelTestCase(unittest.TestCase):
@@ -314,4 +314,7 @@ class UserModelTestCase(unittest.TestCase):
         self.assertTrue(r1 in e1.reports)
         self.assertTrue(r2 in e1.reports)
         self.assertFalse(r2 in e2.reports)
+
+    def test_log(self):
+        pass
 

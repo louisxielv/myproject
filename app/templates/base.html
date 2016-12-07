@@ -45,6 +45,11 @@
                         </li>
                         <li><a href="{{ url_for('events.event_list', username=current_user.username) }}">My Events</a>
                         </li>
+                        {% if current_user.is_administrator() %}
+                            <li><a href="{{ url_for('events.event_list', username=current_user.username) }}">My
+                                Logs</a>
+                            </li>
+                        {% endif %}
                     {% endif %}
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
