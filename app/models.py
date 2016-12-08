@@ -1,6 +1,8 @@
 import hashlib
 from datetime import datetime
 
+import sqlalchemy as sa
+from sqlalchemy import func
 from flask import current_app, request
 from flask_login import UserMixin, AnonymousUserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
@@ -59,12 +61,12 @@ class LogEvent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     op = db.Column(db.String(64))
-    value = db.Column(db.String(64))
+    recipe_id = db.Column(db.INTEGER, db.ForeignKey("recipes.id"))
     ct = db.Column(db.INTEGER)
     logged_at = db.Column(db.DateTime(), default=datetime.utcnow)
 
     @staticmethod
-    def log(user, op, value):
+    def log(user, op, recipe):
         """
 
         :param user:
@@ -72,18 +74,20 @@ class LogEvent(db.Model):
         :param op:
         :return:
         """
-        log = LogEvent.query.filter_by(user=user, op=op, value=value).first()
+        if not user.can(Permission.WRITE_ARTICLES):
+            return
+        log = LogEvent.query.filter_by(user=user, op=op, recipe=recipe).first()
         if log:
             log.ct += 1
             log.logged_at = datetime.utcnow()
         else:
-            log = LogEvent(user=user, op=op, value=value, ct=1)
+            log = LogEvent(user=user, op=op, recipe=recipe, ct=1)
 
         db.session.add(log)
         db.session.commit()
 
     def __repr__(self):
-        return '<LogEvent {}, {}, {}>'.format(self.user.username, self.op, self.value)
+        return '<LogEvent {}, {}, {}>'.format(self.user.username, self.op, self.recipe.title)
 
 
 class Follow(db.Model):
@@ -157,6 +161,12 @@ class User(UserMixin, db.Model):
     #                          secondary='group_member',  # association table
     #                          backref=db.backref('members', lazy='dynamic'),  # User.groups and Group.members
     #                          lazy='dynamic')
+    @property
+    def query_logs(self):
+        return self.logs.group_by(LogEvent.recipe_id).add_columns(func.count(LogEvent.ct)).with_entities(
+            LogEvent.recipe_id, sa.func.count(LogEvent.ct).label('ct')).join(Recipe,
+                                                                             LogEvent.recipe_id == Recipe.id).with_entities(
+            Recipe, LogEvent.ct, Recipe.timestamp)
 
     @staticmethod
     def generate_fake(count=100):
@@ -304,8 +314,11 @@ class User(UserMixin, db.Model):
 
     @property
     def followed_recipes(self):
-        return Recipe.query.join(Follow,
-                                 Follow.followed_id == Recipe.author_id).filter(Follow.follower_id == self.id)
+        return Recipe.query.join(Follow, Follow.followed_id == Recipe.author_id).filter(
+            Follow.follower_id == self.id).with_entities(Recipe,
+                                                         sa.sql.expression.literal_column("1", sa.types.Integer).label(
+                                                             "ct"),
+                                                         Recipe.timestamp)
 
     # membership part
     def member(self, group):
@@ -427,6 +440,7 @@ class Recipe(db.Model):
                            secondary='recipe_tags',
                            backref=db.backref('recipes', lazy='dynamic'),  # Recipe.tags and Tag.recipes
                            lazy='dynamic')
+    logs = db.relationship('LogEvent', backref='recipe', lazy='dynamic')
 
     @staticmethod
     def generate_fake(count=500):

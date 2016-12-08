@@ -35,7 +35,7 @@ def group_profile(id):
         page, per_page=current_app.config['COOKZILLA_POSTS_PER_PAGE'],
         error_out=False)
     events = pagination.items
-    return render_template('groups/group.html', group=group, events=events)
+    return render_template('groups/group.html', group=group, events=events, pagination=pagination)
 
 
 @groups.route('/<username>')

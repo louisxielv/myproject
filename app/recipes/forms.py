@@ -2,8 +2,13 @@ from flask import current_app
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField
 from wtforms import StringField, TextAreaField, SelectField, SubmitField, \
-    SelectMultipleField, FieldList, FormField
-from wtforms.validators import DataRequired, Length, url, Optional, InputRequired
+    SelectMultipleField, FieldList, FormField, widgets
+from wtforms.validators import Length, url, Optional, InputRequired
+
+
+class MultiCheckboxField(SelectMultipleField):
+    widget = widgets.ListWidget(prefix_label=False)
+    option_widget = widgets.CheckboxInput()
 
 
 class PhotoForm(FlaskForm):
@@ -32,13 +37,13 @@ class RecipeForm(FlaskForm):
     serving = SelectField('The Number of Serving', coerce=int, validators=[Optional()])
     body = TextAreaField("Tell us how to make it?", validators=[Optional()])
     # ingredients
-    ingredients = FieldList(FormField(IngredientForm), min_entries=1)
-    ingredients_optical = FieldList(FormField(IngredientForm), min_entries=4)
+    ingredients = FieldList(FormField(IngredientForm, label="must"), min_entries=1)
+    ingredients_optical = FieldList(FormField(IngredientForm, label=""), min_entries=4)
 
     # links
     links = FieldList(FormField(LinkForm), min_entries=2)
 
-    tags = SelectMultipleField('Choose some tags', validators=[Optional()])
+    tags = MultiCheckboxField('Choose some tags', validators=[Optional()])
 
     submit = SubmitField('Submit')
 
@@ -58,5 +63,5 @@ class ReviewForm(FlaskForm):
 
     def __init__(self, *args, **kwargs):
         super(ReviewForm, self).__init__(*args, **kwargs)
-        self.rating.choices = [(_, _) for _ in range(1, 6)]  # (value, label) pairs
-        self.rating.default = ['5']
+        self.rating.choices = [(_, _ * u"\u2605") for _ in range(5, 0, -1)]  # (value, label) pairs
+        self.rating.default = [5]

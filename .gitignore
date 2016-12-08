@@ -1,0 +1,7 @@
+.idea
+.DS_Store
+__pycache__/
+data-test.sqlite
+geckodriver.log
+requirments.txt
+hidden.md

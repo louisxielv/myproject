@@ -36,9 +36,9 @@
                 {{ recipe_form.body.label() }}
                 {{ recipe_form.body(class="ckeditor") }}
             </div>
-            <div class="form-group">
-                {{ recipe_form.ingredients(label="Must Input") }}
-                {{ recipe_form.ingredients_optical(label="Optical Input") }}
+            <div class="form-group ingredients">
+                {{ recipe_form.ingredients() }}
+                {{ recipe_form.ingredients_optical(form_type="horizontal", horizontal_columns=('lg', 2, 4)) }}
             </div>
             <div class="form-group">
                 {{ recipe_form.links.label() }}
@@ -46,6 +46,7 @@
             </div>
             <div class="form-group">
                 {{ recipe_form.tags.label() }}
+                <br>
                 {{ recipe_form.tags(form_type="horizontal") }}
             </div>
             <input type="submit" value="Go">
