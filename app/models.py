@@ -2,10 +2,10 @@ import hashlib
 from datetime import datetime
 
 import sqlalchemy as sa
+from sqlalchemy import func
 from flask import current_app, request
 from flask_login import UserMixin, AnonymousUserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from sqlalchemy import func
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from . import db, login_manager
@@ -316,7 +316,8 @@ class User(UserMixin, db.Model):
     def followed_recipes(self):
         return Recipe.query.join(Follow, Follow.followed_id == Recipe.author_id).filter(
             Follow.follower_id == self.id).with_entities(Recipe,
-                                                         sa.sql.expression.literal_column("1", sa.types.Integer).label("ct"),
+                                                         sa.sql.expression.literal_column("1", sa.types.Integer).label(
+                                                             "ct"),
                                                          Recipe.timestamp)
 
     # membership part

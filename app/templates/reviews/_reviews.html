@@ -17,7 +17,10 @@
                     Title: {{ review.title }}
                 </div>
                 <div class="review-rating">
-                    Rating: {{ review.rating }}
+                    Rating:
+                    {% for _ in range(review.rating) %}
+                        &#9733;
+                    {% endfor %}
                 </div>
                 <div class="review-body">
                     {% if review.disabled %}

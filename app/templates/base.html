@@ -10,22 +10,12 @@
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     {% block stylesheet %}
         <link href="{{ url_for('static', filename='css/bootstrap.css') }}" rel="stylesheet">
-        {#        <link href="{{ url_for('static', filename='css/common.css') }}" rel="stylesheet">#}
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     {% endblock %}
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+
 {% endblock %}
 
 {% block navbar %}
-    <div class='header-top'>
-        <div class="container">
-            <h1 class="blog-title">
-                <li><a href="{{ url_for('main.index') }}">Cookzilla</a></li>
-            </h1>
-            {#            <p class="lead signature">#}
-            {#                {{ BlogInfo.query.first().signature }}#}
-            {#            </p>#}
-        </div>
-    </div>
     <div class="navbar navbar-inverse" role="navigation">
         <div class="container">
             <div class="navbar-header">
@@ -99,7 +89,7 @@
         <p class="footer-content">
             Copyright@2016
             <a href="#">Cookzilla</a>
-            <span class="glyphicon glyphicon-heart"> </span>By CT and XL
+            <span class="glyphicon glyphicon-heart"> </span> By CT and XL
         </p>
     </div>
 {% endblock %}
