@@ -11,7 +11,7 @@
 
 {% block page_content %}
     {% include 'events/_event.html' %}
-    <h4 id="rsvp"> RSVP </h4>
+    <h2> RSVP </h2>
     <p>
         {% if current_user.is_available(event) %}
             <a href="{{ url_for('events.go', id=event.id) }}" class="btn btn-primary">Go</a>
@@ -21,8 +21,9 @@
         {% endif %}
     </p>
 
-    <h4 id="reports">Reports</h4>
+
     {% if reports %}
+        <h2>Reports</h2>
         {% include 'reports/_reports.html' %}
         {% include 'utils/_pagination.html' %}
     {% endif %}

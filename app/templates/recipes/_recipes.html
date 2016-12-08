@@ -4,39 +4,43 @@
             <li class="recipe">
                 <div class="row well">
 
-                    <div class="header-left col-md-8">
-                        <div class="recipe-title">
-                            {{ recipe.title }}
-                        </div>
+                    <div class="header-left col-md-6">
                         <div class="recipe-thumbnail">
-                            <a href="{{ url_for('main.user', username=recipe.author.username) }}">
-                                <img class="img-rounded profile-thumbnail" src="{{ recipe.author.gravatar(size=100) }}">
+                            <a href="{{ url_for('recipes.recipe', id=recipe.id) }}">
+                                <img class="img-rounded profile-thumbnail" alt="missing photo"
+                                     src={{ recipe.photos }} height="200">
                             </a>
                         </div>
                     </div>
-                    <div class="header-right col-md-4">
-                        <div class="user-thumbnail">
-                            <a href="{{ url_for('main.user', username=recipe.author.username) }}">
-                                <img class="img-rounded profile-thumbnail" src="{{ recipe.author.gravatar(size=40) }}">
-                            </a>
+                    <div class="header-right col-md-6">
+                        <div class="recipe-title">
+                            <h3>{{ recipe.title }}</h3>
                         </div>
                         <div class="recipe-author">
-                            <a href="{{ url_for('main.user', username=recipe.author.username) }}">{{ recipe.author.username }}</a>
-                        </div>
-                        <div class="recipe-date">
-                            Update time: {{ moment(recipe.timestamp).fromNow() }}
+                            <div class="user-thumbnail">
+                                <a href="{{ url_for('main.user', username=recipe.author.username) }}">
+                                    <img class="img-rounded profile-thumbnail"
+                                         src="{{ recipe.author.gravatar(size=40) }}">
+                                </a>
+                            </div>
+                            <div class="recipe-user">
+                                <a href="{{ url_for('main.user', username=recipe.author.username) }}">{{ recipe.author.username }}</a>
+                            </div>
+                            <div class="recipe-date">
+                                Update: {{ moment(recipe.timestamp).fromNow() }}
+                            </div>
                         </div>
                         <div class="recipe-footer">
                             {% if current_user == recipe.author %}
                                 <a href="{{ url_for('recipes.edit', id=recipe.id) }}">
-                                    <span class="label label-primary">Edit</span>
+                                    <span class="label label-danger">Edit</span>
                                 </a>
                             {% endif %}
                             <a href="{{ url_for('recipes.recipe', id=recipe.id) }}">
-                                <span class="label label-default">See Detail</span>
+                                <span class="label label-warning">See Detail</span>
                             </a>
                             <a href="{{ url_for('recipes.recipe', id=recipe.id) }}#reviews">
-                                <span class="label label-primary">{{ recipe.reviews.count() }} Reviews</span>
+                                <span class="label label-warning">{{ recipe.reviews.count() }} Reviews</span>
                             </a>
                         </div>
                     </div>

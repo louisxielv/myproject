@@ -27,13 +27,15 @@
                 <td><a href="http://maps.google.com/?q={{ event.event.location }}">{{ event.event.location }}</a></td>
                 <td>{% if user.is_go(event.event) %}
                     Go
-                    {% elif user.is_not_go(event.event) %}
+                {% elif user.is_not_go(event.event) %}
                     Not Go
-                    {% else %}
+                {% else %}
                     Not Sure
-                    {% endif %}
+                {% endif %}
             </tr>
         {% endfor %}
+
     </table>
+    {% include "utils/_pagination.html" %}
 
 {% endblock %}

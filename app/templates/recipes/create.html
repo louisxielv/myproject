@@ -14,44 +14,55 @@
 
 {% block page_content %}
     <div class="entry-box create">
-        <h4><strong>Create Your Own Recipe</strong></h4>
+        <h1><strong>Create Your Own Recipe</strong></h1>
         <hr/>
         <form class="create" method="post" action="" enctype="multipart/form-data">
             {{ recipe_form.csrf_token }}
             {{ recipe_form.hidden_tag() }}
 
             <div class="form-group">
-                {{ recipe_form.title.label(class="control-label") }}
+                <h2>{{ recipe_form.title.label(class="control-label") }}</h2>
+                <br>
                 {{ recipe_form.title(class="create-title") }}
             </div>
             <div class="form-group">
-                {{ recipe_form.photo.label(class="control-label") }}
+                <h2>{{ recipe_form.photo.label(class="control-label") }}</h2>
+                <br>
                 {{ recipe_form.photo(class="create-photo") }}
             </div>
             <div class="form-group">
-                {{ recipe_form.serving.label(class="control-label") }}
-                {{ recipe_form.serving(class="", required="") }}
+                <h2>{{ recipe_form.serving.label(class="control-label") }}</h2>
+                <br>
+                {{ recipe_form.serving(class="", required="") }} Person
             </div>
             <div class="form-group">
-                {{ recipe_form.body.label() }}
+                <h2>{{ recipe_form.body.label() }}</h2>
+                <br>
                 {{ recipe_form.body(class="ckeditor") }}
             </div>
             <div class="form-group ingredients">
-                {{ recipe_form.ingredients() }}
-                {{ recipe_form.ingredients_optical(form_type="horizontal", horizontal_columns=('lg', 2, 4)) }}
+                <h2>Ingredients</h2> (At least one, eight most)
+{#                {{ recipe_form.ingredients() }}#}
+{#                <br>#}
+                {{ recipe_form.ingredients_optical() }}
             </div>
             <div class="form-group">
-                {{ recipe_form.links.label() }}
-                {{ recipe_form.links(form_type="horizontal") }}
-            </div>
-            <div class="form-group">
-                {{ recipe_form.tags.label() }}
+                <h2>{{ recipe_form.links.label() }}</h2> (For example: http://127.0.0.1:5000/recipes/1)
                 <br>
-                {{ recipe_form.tags(form_type="horizontal") }}
+                {{ recipe_form.links() }}
             </div>
-            <input type="submit" value="Go">
+            <div class="form-group">
+                <h2>{{ recipe_form.tags.label() }}</h2>
+                <br>
+                {{ recipe_form.tags() }}
+            </div>
+            <input class="btn btn-danger" type="submit" value="Submit My Recipe">
         </form>
     </div>
+{% endblock %}
+
+{% block side_content %}
+    {% include "utils/_message_recipe.html" %}
 {% endblock %}
 
 {% block scripts %}

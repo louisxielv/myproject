@@ -495,7 +495,7 @@ class Ingredient(db.Model):
     name = db.Column(db.String(LENGTH), primary_key=True)
     recipe_id = db.Column(db.Integer, db.ForeignKey('recipes.id'), primary_key=True)
     unit = db.Column(db.String(LENGTH))
-    quantity = db.Column(db.INTEGER)
+    quantity = db.Column(db.FLOAT)
 
     @staticmethod
     def generate_fake(count=1000):

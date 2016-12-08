@@ -1,60 +1,57 @@
 <div class="recipe">
+    <div class="recipe-title">
+        <h1>{{ recipe.title }}</h1>
+    </div>
     {% if recipe.photos %}
         <div class="recipe-thumbnail">
-            Title picture:
             <a href="{{ url_for('recipes.recipe', id=recipe.id) }}">
-                <img class="img-rounded profile-thumbnail" alt="missing photo" src={{ recipe.photos }} height="100">
+                <img class="img-rounded profile-thumbnail" alt="missing photo" src={{ recipe.photos }} height="400">
             </a>
         </div>
     {% endif %}
     <div class="recipe-content">
-        <div class="recipe-title">
-            Title: {{ recipe.title }}
-        </div>
-        <div class="recipe-date">
-            Last update: {{ moment(recipe.timestamp).fromNow() }}
-        </div>
-        <div class="recipe-body">
-            How to do it: {{ recipe.body | safe }}
-        </div>
-        <div class="recipe-serving">
-            Serving: {{ recipe.serving }}
-        </div>
-        <div class="recipe-ingredients">
+        <h3>Last update</h3>
+        <p class="recipe-date">
+
+            {{ moment(recipe.timestamp).fromNow() }}
+        </p>
+        <h3>Serving</h3>
+        <p class="recipe-serving">
+            {{ recipe.serving }} People
+        </p>
+        <h3>How to make it</h3>
+
+        <p class="recipe-body">
+            {{ recipe.body | safe }}
+        </p>
+        <h3> Ingredients</h3>
+        <p class="recipe-ingredients">
             {% for ingredient in recipe.ingredients.all() %}
-                <p>Ingredient: {{ ingredient.name }} Unit: {{ ingredient.unit }}
-                    Quantity: {{ ingredient.quantity }}</p>
+                <p><strong>Name:</strong> {{ ingredient.name }} <strong>Unit:</strong> {{ ingredient.unit }}
+                    <strong>Quantity:</strong> {{ ingredient.quantity }}</p>
             {% endfor %}
-        </div>
-        <div class="recipe-tags">
+        </p>
+        <p class="recipe-tags">
             {% if recipe.tags.all() %}
-                Tag:
+                <h3>Tag:</h3>
                 {% for tag in recipe.tags.all() %}
-                    {{ tag.tag }}
+                    <a class="tags" href="{{ url_for('tags.tag', id=tag.id) }}">{{ tag.tag }}</a>
                 {% endfor %}
             {% endif %}
-        </div>
-        <div class="recipe-links">
-            {% for link in recipe.links.all() %}
-                <p><a href="{{ url_for('recipes.recipe', id=link.id) }}">Link: {{ link.title }}</a></p>
-            {% endfor %}
-        </div>
-        <div class="recipe-footer">
+        </p>
+
+        <h3>links:</h3>
+        <p class="recipe-links">
+            {% with recipes=recipe.links.all() %}
+                {% include "recipes/_recipes.html" %}
+            {% endwith %}
+        </p>
+        <p class="recipe-footer">
             {% if current_user == recipe.author %}
                 <a href="{{ url_for('recipes.edit', id=recipe.id) }}">
-                    <span class="label label-primary">Edit</span>
-                </a>
-            {% elif current_user.is_administrator() %}
-                <a href="{{ url_for('recipes.edit', id=recipe.id) }}">
-                    <span class="label label-danger">Edit [Admin]</span>
+                    <span class="label label-danger">Edit</span>
                 </a>
             {% endif %}
-            <a href="{{ url_for('recipes.recipe', id=recipe.id) }}">
-                <span class="label label-default">Permalink</span>
-            </a>
-            <a href="{{ url_for('recipes.recipe', id=recipe.id) }}#reviews">
-                <span class="label label-primary">{{ recipe.reviews.count() }} Reviews</span>
-            </a>
-        </div>
+        </p>
     </div>
 </div>

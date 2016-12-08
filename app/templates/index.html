@@ -27,12 +27,7 @@
         {% include "tags/_tags.html" %}
         {% include "utils/search.html" %}
     {% else %}
-        <p>This Chen and Lyu.
-            <br>
-            Welcome to Cookzilla, where you can share recipes, find good foods, meet eaters, and have fun!
-            <br>
-            So, <a href="{{ url_for("auth.register") }}">SIGN UP</a> and access to millions of recipes.
-        </p>
+        {% include "utils/_message.html" %}
     {% endif %}
 {% endblock %}
 

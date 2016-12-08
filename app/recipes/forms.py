@@ -2,7 +2,7 @@ from flask import current_app
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField
 from wtforms import StringField, TextAreaField, SelectField, SubmitField, \
-    SelectMultipleField, FieldList, FormField, widgets
+    SelectMultipleField, FieldList, FormField, widgets, FloatField
 from wtforms.validators import Length, url, Optional, InputRequired
 
 
@@ -17,9 +17,9 @@ class PhotoForm(FlaskForm):
 
 class IngredientForm(FlaskForm):
     # ingredients
-    name = StringField('Ingredient Name', validators=[Optional()])
+    name = StringField('Name', validators=[Optional()])
     unit = SelectField('Unit', coerce=str, validators=[Optional()])
-    quantity = StringField('Quantity', validators=[Optional()])
+    quantity = FloatField('Quantity', validators=[Optional()])
 
     def __init__(self, *args, **kwargs):
         super(IngredientForm, self).__init__(*args, **kwargs)
@@ -37,11 +37,11 @@ class RecipeForm(FlaskForm):
     serving = SelectField('The Number of Serving', coerce=int, validators=[Optional()])
     body = TextAreaField("Tell us how to make it?", validators=[Optional()])
     # ingredients
-    ingredients = FieldList(FormField(IngredientForm, label="must"), min_entries=1)
-    ingredients_optical = FieldList(FormField(IngredientForm, label=""), min_entries=4)
+    # ingredients = FieldList(FormField(IngredientForm, label=""), min_entries=1)
+    ingredients_optical = FieldList(FormField(IngredientForm, label=""), min_entries=8)
 
     # links
-    links = FieldList(FormField(LinkForm), min_entries=2)
+    links = FieldList(FormField(LinkForm, label=""), min_entries=2)
 
     tags = MultiCheckboxField('Choose some tags', validators=[Optional()])
 

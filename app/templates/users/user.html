@@ -12,17 +12,19 @@
                     {% if user.name %}{{ user.name }}<br>{% endif %}
                 </p>
             {% endif %}
-            {% if current_user.is_administrator() %}
-                <p><a href="mailto:{{ user.email }}">{{ user.email }}</a></p>
-            {% endif %}
+
+            <p><a href="mailto:{{ user.email }}">Contact {{ user.email }}</a></p>
+
+            <h2> About Me </h2>
             {% if user.about_me %}<p>{{ user.about_me }}</p>{% endif %}
-            <p>Member since {{ moment(user.joined_since).format('L') }}. Last
-                seen {{ moment(user.last_seen).fromNow() }}.</p>
+            <p>Member since {{ moment(user.joined_since).format('L') }}. </p>
+            <p>Last seen {{ moment(user.last_seen).fromNow() }}.</p>
             <p>{{ user.recipes.count() }} blog recipes. {{ user.reviews.count() }} reviews.</p>
             <p>
                 {% if current_user.can(Permission.FOLLOW) and user != current_user %}
                     {% if not current_user.is_following(user) %}
-                        <a href="{{ url_for('.follow', username=user.username) }}" class="btn btn-primary">Follow</a>
+                        <a href="{{ url_for('.follow', username=user.username) }}"
+                           class="btn btn-primary">Follow</a>
                     {% else %}
                         <a href="{{ url_for('.unfollow', username=user.username) }}"
                            class="btn btn-default">Unfollow</a>
@@ -34,8 +36,8 @@
             </p>
             <p>
                 {% if user == current_user %}
-                    <a class="btn btn-default" href="{{ url_for('groups.create') }}">Create Groups</a>
-                    <a class="btn btn-default" href="{{ url_for('recipes.create') }}">Create Recipe</a>
+                    <a class="btn btn-warning" href="{{ url_for('recipes.create') }}">Create Recipe</a>
+                    <a class="btn btn-primary" href="{{ url_for('groups.create') }}">Create Groups</a>
                     <a class="btn btn-default" href="{{ url_for('.edit_profile') }}">Edit Profile</a>
                 {% endif %}
                 {% if current_user.is_administrator() %}
@@ -45,7 +47,7 @@
             </p>
         </div>
     </div>
-    <h3>recipes by {{ user.username }}</h3>
+    <h3>Recipes by {{ user.username }}</h3>
     {% include 'recipes/_recipes.html' %}
     {% include 'utils/_pagination.html' %}
 {% endblock %}

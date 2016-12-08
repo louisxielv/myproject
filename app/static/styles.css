@@ -6,13 +6,45 @@ ul {
     padding-left: 15px;
 }
 
+.well,
 .recipe-tabs .well {
     background-color: #ffffff;
     margin-top: -1px;
 }
 
 .header-right {
-    text-align: right;
+    text-align: left;
+    padding-left: 25px;
+}
+
+.header-right .recipe-title {
+    font-size: x-large;
+}
+
+.header-right .recipe-author {
+    margin-top: 5%;
+}
+.header-left .recipe-date,
+.header-left .recipe-location {
+    font-size: x-large;
+    color: lightslategray;
+}
+
+.header-right .recipe-date {
+    color: lightslategray;
+    font-size: small;
+}
+
+.header-left .recipe-footer,
+.recipe-content .recipe-footer,
+.header-right .recipe-footer {
+    font-size: larger;
+}
+
+.recipe-user a,
+.header-right .recipe-user a {
+    font-size: larger;
+    color: chocolate;
 }
 
 .create .ingredients li tbody {
@@ -20,14 +52,15 @@ ul {
 }
 
 .create .ingredients li tbody tr {
-    margin: 10px;
+    margin: 5px;
 }
 
 .create .ingredients li tbody tr th label {
-    margin-right: 5px;
+    margin-right: 2px;
 }
 
 .footer {
+    top: 50px;
     position: relative;
     margin-top: -50px; /* negative value of footer height */
     height: 60px;
@@ -45,4 +78,68 @@ ul {
 
 .footer p a {
     color: #20d3ff;
+}
+
+h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5 {
+    color: #626365;
+}
+
+div.col-md-4.side {
+    top: 25px;
+}
+
+div.search form.form label.control-label {
+    color: white;
+}
+
+.recipe-content a.tags,
+.tag-content a {
+    border-top: 1px;
+    display: block;
+    width: 100px;
+    height: 25px;
+    background: rgba(59, 63, 64, 0.45);
+    padding: 3px;
+    text-align: center;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    margin: 8px 8px 8px 8px;
+    box-shadow: rgba(0, 0, 0, 0.36) 0 2px 0;
+}
+
+.well.message {
+    color: #626365;
+    background-color: white;
+    border-style: groove;
+    font-family: sans-serif;
+}
+
+.container.main-page {
+    height: 1000px;
+}
+
+.recipe .recipe-title {
+    font-size: x-large;
+}
+
+.recipe .recipe-thumbnail {
+    margin: 10px 10px 10px 0px;
+}
+
+ui, ol {
+    font-size: medium;
+    font-family: sans-serif;
+}
+
+#rating {
+    background-color: white;
+    border-color: white;
+    color: gold;
+    font-size: larger;
+}
+
+#links-0 label,
+#links-1 label {
+    margin: 5px;
 }
