@@ -1,25 +1,35 @@
-<ul class="reviews">
-    {% for report in reports %}
-        <li class="review">
-            <div class="review-thumbnail">
-                <a href="{{ url_for('main.user', username=report.author.username) }}">
-                    <img class="img-rounded profile-thumbnail" src="{{ report.author.gravatar(size=40) }}">
-                </a>
-            </div>
-            <div class="review-content">
-                <div class="review-date">
-                    {{ moment(report.timestamp).fromNow() }}
+<div class="recipe-tabs">
+    <ul class="reviews">
+        {% for report in reports %}
+            <li class="recipe">
+                <div class="row well">
+                    <div class="header-left col-md-9">
+                        <h4>{{ report.title }}</h4>
+                        {{ report.body | safe }}
+
+                    </div>
+                    <div class="header-right col-md-3">
+                        <h3>Author</h3>
+                        <div class="recipe-author">
+                            <div class="user-thumbnail">
+                                <a href="{{ url_for('main.user', username=report.author.username) }}">
+                                    <img class="img-rounded profile-thumbnail"
+                                         src="{{ report.author.gravatar(size=40) }}">
+                                </a>
+                            </div>
+                            <div class="recipe-user">
+                                <a href="{{ url_for('main.user', username=report.author.username) }}">{{ report.author.username }}</a>
+                            </div>
+                            <div class="recipe-date">
+                                Update: {{ moment(report.timestamp).fromNow() }}
+                            </div>
+
+
+                        </div>
+                    </div>
                 </div>
-                <div class="review-author">
-                    <a href="{{ url_for('main.user', username=report.author.username) }}">{{ report.author.username }}</a>
-                </div>
-                <div class="review-title">
-                    Title: {{ report.title }}
-                </div>
-                <div class="review-body">
-                        Report: {{ report.body | safe }}
-                </div>
-            </div>
-        </li>
-    {% endfor %}
-</ul>
+            </li>
+        {% endfor %}
+    </ul>
+
+</div>
