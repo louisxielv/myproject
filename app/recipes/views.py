@@ -41,16 +41,16 @@ def create():
         # ['2', '3', '4']
         # [{'link': 'http://127.0.0.1:5000/recipes/1'}, {'link': 'http://127.0.0.1:5000/recipes/2'}]
 
-        # ingredient must one
-        tmp = recipe_form.ingredients.data[0]
-        name = tmp["name"]
-        unit = tmp["unit"]
-        try:
-            quantity = int(tmp["quantity"])
-            ingredient = Ingredient(name=name, recipe=recipe, unit=unit, quantity=quantity)
-            db.session.add(ingredient)
-        except:
-            pass
+        # # ingredient must one
+        # tmp = recipe_form.ingredients.data[0]
+        # name = tmp["name"]
+        # unit = tmp["unit"]
+        # try:
+        #     quantity = int(tmp["quantity"])
+        #     ingredient = Ingredient(name=name, recipe=recipe, unit=unit, quantity=quantity)
+        #     db.session.add(ingredient)
+        # except:
+        #     pass
 
         # ingredient optical
         for ingredient in recipe_form.ingredients_optical.data:
@@ -58,7 +58,7 @@ def create():
                 name = ingredient["name"]
                 unit = ingredient["unit"]
                 try:
-                    quantity = int(ingredient["quantity"])
+                    quantity = float(ingredient["quantity"])
                     ingredient = Ingredient(name=name, recipe=recipe, unit=unit, quantity=quantity)
                     db.session.add(ingredient)
                 except:

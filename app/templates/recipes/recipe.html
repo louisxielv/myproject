@@ -11,7 +11,7 @@
 
 {% block page_content %}
     {% include 'recipes/_recipe.html' %}
-    <h4 id="reviews">Comments</h4>
+    <h3 id="reviews">Comments</h3>
     {% if reviews %}
         {% include 'reviews/_reviews.html' %}
         {% include 'utils/_pagination.html' %}
@@ -20,10 +20,12 @@
 {% endblock %}
 
 {% block side_content %}
-    <h1>Author</h1>
-    {% with target_user=recipe.author %}
-        {% include "users/_user.html" %}
-    {% endwith %}
+    <div class="well">
+        <h2>Author</h2>
+        {% with target_user=recipe.author %}
+            {% include "users/_user.html" %}
+        {% endwith %}
+    </div>
 {% endblock %}
 
 {% block scripts %}

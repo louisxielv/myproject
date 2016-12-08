@@ -1,38 +1,16 @@
-<div class="event">
-    <div class="event-content">
-        <div class="event-title">
-            Title: {{ event.title }}
-        </div>
-        <div class="event-date">
-            Last update: {{ moment(event.timestamp).fromNow() }}
-        </div>
-        <div class="event-date">
-            When: {{ event.timestamp }}
-        </div>
+<div class="profile-header">
+    <h1>{{ event.title }}</h1>
 
-        <div class="event-location">
-            Where: <a href="http://maps.google.com/?q={{ event.location }}">{{ event.location }}</a>
-        </div>
-        <div class="event-body">
-            About the event: {{ event.about_event | safe }}
-        </div>
-        {##}
-        {#        <div class="recipe-footer">#}
-        {#            {% if current_user == recipe.author %}#}
-        {#                <a href="{{ url_for('recipes.edit', id=recipe.id) }}">#}
-        {#                    <span class="label label-primary">Edit</span>#}
-        {#                </a>#}
-        {#            {% elif current_user.is_administrator() %}#}
-        {#                <a href="{{ url_for('recipes.edit', id=recipe.id) }}">#}
-        {#                    <span class="label label-danger">Edit [Admin]</span>#}
-        {#                </a>#}
-        {#            {% endif %}#}
-        {#            <a href="{{ url_for('recipes.recipe', id=recipe.id) }}">#}
-        {#                <span class="label label-default">Permalink</span>#}
-        {#            </a>#}
-        {#            <a href="{{ url_for('recipes.recipe', id=recipe.id) }}#reviews">#}
-        {#                <span class="label label-primary">{{ recipe.reviews.count() }} Reviews</span>#}
-        {#            </a>#}
-        {#        </div>#}
-    </div>
+    <Strong>Last update:</Strong> {{ moment(event.timestamp).fromNow() }}
+
+    <h2>When: {{ moment(event.timestamp).format("L") }}</h2>
+
+    <h2>Where: <a href="http://maps.google.com/?q={{ event.location }}">{{ event.location }}</a></h2>
+
+    {% if event.about_event %}
+        <h2>About the Event</h2>
+        <p>
+            {{ event.about_event | safe }}
+        </p>
+    {% endif %}
 </div>

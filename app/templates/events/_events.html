@@ -2,19 +2,18 @@
     <ul class="recipes">
         {% for event in events %}
             <li class="recipe">
-                <div class="well">
-                    <div class="event-content">
-                        <div class="event-title">
-                            Title: {{ event.title }}
-                        </div>
-                        <div class="event-date">
-                            Last update: {{ moment(event.timestamp).fromNow() }}
-                        </div>
-                        <div class="event-date">
-                            When: {{ event.timestamp }}
+                <div class="row well">
+                    <div class="header-left col-md-10">
+
+                        <div class="recipe-title">
+                            {{ event.title }}
                         </div>
 
-                        <div class="event-location">
+                        <div class="recipe-date">
+                            When: {{ moment(event.timestamp).format("L") }}
+                        </div>
+
+                        <div class="recipe-location">
                             Where: <a href="http://maps.google.com/?q={{ event.location }}">{{ event.location }}</a>
                         </div>
                         <div class="recipe-footer">
@@ -26,7 +25,26 @@
                             </a>
                         </div>
                     </div>
+
+                    <div class="header-right col-md-2">
+                        <h4>Organizor</h4>
+                        <div class="recipe-author">
+                            <div class="user-thumbnail">
+                                <a href="{{ url_for('main.user', username=event.creator.username) }}">
+                                    <img class="img-rounded profile-thumbnail"
+                                         src="{{ event.creator.gravatar(size=40) }}">
+                                </a>
+                            </div>
+                            <div class="recipe-user">
+                                <a href="{{ url_for('main.user', username=event.creator.username) }}">{{ event.creator.username }}</a>
+                            </div>
+                            <div class="recipe-date">
+                                Last update: {{ moment(event.timestamp).fromNow() }}
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
 
             </li>
         {% endfor %}

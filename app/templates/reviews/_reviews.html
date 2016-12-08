@@ -1,51 +1,45 @@
-<ul class="reviews">
-    {% for review in reviews %}
-        <li class="review">
-            <div class="review-thumbnail">
-                <a href="{{ url_for('main.user', username=review.author.username) }}">
-                    <img class="img-rounded profile-thumbnail" src="{{ review.author.gravatar(size=40) }}">
-                </a>
-            </div>
-            <div class="review-content">
-                <div class="review-date">
-                    {{ moment(review.timestamp).fromNow() }}
-                </div>
-                <div class="review-author">
-                    <a href="{{ url_for('main.user', username=review.author.username) }}">{{ review.author.username }}</a>
-                </div>
-                <div class="review-title">
-                    Title: {{ review.title }}
-                </div>
-                <div class="review-rating">
-                    Rating:
-                    {% for _ in range(review.rating) %}
-                        &#9733;
-                    {% endfor %}
-                </div>
-                <div class="review-body">
-                    {% if review.disabled %}
-                        <p><i>This review has been disabled by a moderator.</i></p>
-                    {% endif %}
-                    {% if moderate or not review.disabled %}
-                        Review: {{ review.body | safe }}
-                    {% endif %}
-                </div>
-                {% if moderate %}
-                    <br>
-                    {% if review.disabled %}
-                        <a class="btn btn-default btn-xs"
-                           href="{{ url_for('main.moderate_enable', id=review.id, page=page) }}">Enable</a>
-                    {% else %}
-                        <a class="btn btn-danger btn-xs"
-                           href="{{ url_for('main.moderate_disable', id=review.id, page=page) }}">Disable</a>
-                    {% endif %}
-                {% endif %}
-                {% if review.suggestion %}
-                    <div class="review-suggestion">
-                        Suggestion: {{ review.suggestion }}
+<div class="recipe-tabs">
+    <ul class="recipes">
+        {% for review in reviews %}
+            <li class="recipe">
+                <div class="row well">
+                    <div class="header-left col-md-6">
+                        <h4>{{ review.title }}</h4>
+                        {{ review.body | safe }}
                     </div>
-                {% endif %}
-            </div>
-        </li>
-    {% endfor %}
-</ul>
+                    <div class="header-right col-md-6">
+                        <div class="recipe-author">
+                            <div class="user-thumbnail">
+                                <a href="{{ url_for('main.user', username=review.author.username) }}">
+                                    <img class="img-rounded profile-thumbnail"
+                                         src="{{ review.author.gravatar(size=40) }}">
+                                </a>
+                            </div>
+                            <div class="recipe-user">
+                                <a href="{{ url_for('main.user', username=review.author.username) }}">{{ review.author.username }}</a>
+                            </div>
+                            <div class="recipe-date">
+                                Update: {{ moment(review.timestamp).fromNow() }}
+                            </div>
+                        </div>
+                        <h5>Rating:
+                            <div id="rating">
+                                {% for _ in range(review.rating) %}
+                                    &#9733;
+                                {% endfor %}
+                            </div>
+
+                        </h5>
+
+                        {% if review.suggestion %}
+                            <h5>Suggestion: </h5>
+                            <div class="review-suggestion">
+                                {{ review.suggestion }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
